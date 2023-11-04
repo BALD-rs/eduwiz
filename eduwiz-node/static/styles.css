@@ -146,7 +146,6 @@ button:disabled {
 	border-radius: 15px;
 	text-align: center;
 	box-sizing: border-box;
-
 }
 
 img {
@@ -189,4 +188,27 @@ img {
 .choice:hover {
 	transform: scale(1.03);
 	filter: brightness(100%);
+}
+
+.username-panel {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+	width: 450px;
+
+	padding: 2em;
+	background: white;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+	border-radius: 15px;
+	text-align: center;
+}
+
+.internal-panel {
+	display: flex;
+	justify-content: center;
+}
+
+.username-panel input {
+	width: 100%;
 }
