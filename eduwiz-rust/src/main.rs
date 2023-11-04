@@ -4,6 +4,7 @@ use axum::{
     response::IntoResponse,
     Json, Router,
 };
+use eduwiz_rust::room::Room;
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 
@@ -31,6 +32,8 @@ async fn main() {
     let _ : () = con.set("my_key", 42).unwrap();
     let keyval: RedisResult<isize> = con.get("my_key");
     println!("{:?}", keyval);
+
+    let room = Room::new();
 
     // Application built
     let app = Router::new()
