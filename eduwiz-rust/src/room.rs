@@ -9,7 +9,7 @@ use serde::{Serialize, Deserialize};
 use redis_derive::{FromRedisValue, ToRedisArgs};
 use r2d2_redis::redis;
 
-#[derive(Serialize, FromRedisValue, ToRedisArgs)]
+#[derive(Serialize, FromRedisValue)]
 pub struct Room {
     /// 5 digit alphanumeric room code
     code: String,
@@ -19,12 +19,14 @@ pub struct Room {
     user_scores: Vec<(User, i32)>,
     /// Whether or not the room has begun
     started: bool,
+    /// Whether or not the room is finished
+    finished: bool,
     /// Whether or not to shuffle the order questions appear in
     shuffle_questions: bool,
     /// Whether or not to shuffle the order answers appear in
     shuffle_answers: bool,
-    /// List of questions for the room
-    questions: Vec<Question>,
+    /// List of questions for the room // Prompt, Question
+    questions: HashMap<String, Question>,
 }
 
 #[derive(Serialize, FromRedisValue, ToRedisArgs)]
@@ -33,7 +35,7 @@ pub struct User {
     name: String,
 }
 
-#[derive(Serialize, FromRedisValue, ToRedisArgs, Clone)]
+#[derive(Serialize, FromRedisValue, ToRedisArgs, Clone, Deserialize)]
 pub struct Question {
     pub prompt: String,
     pub answers: HashSet<String>,
@@ -61,9 +63,10 @@ impl Room {
             users: Vec::new(),
             user_scores: Vec::new(),
             started: false,
+            finished: false,
             shuffle_questions: false,
             shuffle_answers: false,
-            questions: Vec::new(),
+            questions: HashMap::new(),
         }
     }
 
@@ -71,7 +74,8 @@ impl Room {
     pub fn new_question(&self) -> Question {
         let mut rng = rand::thread_rng();
         let question = rng.gen_range(0..self.questions.len());
-        return self.questions[question].clone();
+        let options: Vec<&String> = self.questions.keys().collect();
+        return self.questions.get(options[question]).unwrap().clone();
     }
 
     // Starts room
@@ -79,15 +83,27 @@ impl Room {
         if !self.started {
             self.started = true;
 
-            if self.shuffle_questions {
-                self.questions.shuffle(&mut thread_rng());
-            }
+            // if self.shuffle_questions {
+            //     self.questions.shuffle(&mut thread_rng());
+            // }
         }
     }
 
     // Gets room code
     pub fn get_code(&self) -> String {
         return self.code.clone();
+    }
+
+    pub fn get_questions(&self) -> HashMap<String, Question> {
+        return self.questions.clone();
+    }
+
+    pub fn get_finished(&self) -> bool {
+        return self.finished;
+    }
+
+    pub fn get_started(&self) -> bool {
+        return self.started;
     }
 
     // Adds given user to room

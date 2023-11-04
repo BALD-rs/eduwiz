@@ -2,18 +2,19 @@ use axum::{
     extract::{
         ws::{Message, WebSocket, WebSocketUpgrade},
         TypedHeader,
+        Json as Json2
     },
     routing::{get, post},
     http::StatusCode,
     response::IntoResponse,
-    Json, Router, extract::{State, Path, ConnectInfo},
+    Json, Router, extract::{State, Path, ConnectInfo, Extension, self},
 };
 use futures_util::{sink::SinkExt, stream::{StreamExt, SplitSink, SplitStream}};
 
 use eduwiz_rust::room::{Room, Question};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use std::{net::SocketAddr, time::Duration, collections::HashSet};
+use std::{net::SocketAddr, time::Duration, collections::HashSet, sync::Arc};
 
 use dotenvy::dotenv;
 
@@ -41,10 +42,13 @@ async fn main() {
     let keyval: RedisResult<isize> = con.get("my_key");
     println!("{:?}", keyval);
 
+
     // Application built
     let app = Router::new()
         .route("/api/create_room", get(create_room))
         .route("/api/start_room/:room", get(start_room))
+        .route("/api/join_room/:room", get(join_room))
+        .route("/api/submit_answer", post(submit_answer))
         .with_state(pool);
 
     // Run the app on 127.0.0.1:3000
@@ -55,6 +59,7 @@ async fn main() {
         .await
         .unwrap();
 }
+
 
 #[derive(Serialize, Deserialize)]
 struct CreateRoomResponse {
@@ -92,6 +97,9 @@ async fn handle_host_socket(
     State(pool): State<Pool<RedisConnectionManager>>,
 ) {
     let mut interval = tokio::time::interval(Duration::from_secs(5));
+    loop {
+        interval.tick().await;
+    }
 }
 
 // Starts room given and upgrades to a websocket
@@ -111,8 +119,11 @@ async fn handle_client_socket(
     who: SocketAddr,
     State(pool): State<Pool<RedisConnectionManager>>,
 ) {
+    let mut interval = tokio::time::interval(Duration::from_secs(2));
     let mut conn = pool.get().unwrap();
     loop {
+        // Executes every 2 seconds
+        interval.tick().await;
         // Polls for latest room
         let room: Room = match conn.get(&room) {
             Ok(room) => room,
@@ -121,32 +132,65 @@ async fn handle_client_socket(
                 continue;
             }
         };
-        // Gets new question to submit
-        let new_question = room.new_question();
-        let client_question = json!(ClientQuestion {
-            prompt: new_question.prompt,
-            answers: new_question.answers,
-        });
-        // Sends new question to client
-        if let Err(e) = socket.send(Message::Text(client_question.to_string())).await {
-            println!("Failed to send message: {}", e);
+
+        if room.get_finished() {
+            socket.send(Message::Text(String::from("END"))).await;
         }
-        let message = socket.recv().await;
-        
+
+        if room.get_started() {
+            socket.send(Message::Text(String::from("START"))).await;
+        }
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
+pub struct QuestionInfo {
+    pub user: String,
+    pub room: String,
+    pub question: String,
+    pub answer: String,
+}
+
+
+async fn submit_answer(
+    State(pool): State<Pool<RedisConnectionManager>>,
+    extract::Json(payload): extract::Json<QuestionInfo>
+) -> Result<Json<ClientQuestion>, StatusCode>{
+    
+    let mut conn = pool.get().unwrap();
+
+    let room: Room = match conn.get(&payload.room) {
+        Ok(room) => room,
+        Err(_) => {
+            println!("Failed to get room");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+        }
+    };
+
+    let backend_questions = room.get_questions();
+    let mut last_correct = false;
+    if let Some(b_q) = backend_questions.get(&payload.question) {
+        if b_q.check_correct(payload.answer) {
+            let user_score: RedisResult<isize> = conn.get(payload.user.clone());
+            let user_score = user_score.unwrap();
+            let _: () = conn.set(&payload.user.to_string(), user_score).unwrap();
+            last_correct = true;
+        }
+    }
+
+    let new_question = room.new_question();
+    let client_question = ClientQuestion {
+        prompt: new_question.prompt,
+        answers: new_question.answers,
+        last_correct,
+    };
+    //return 2;
+    return Ok(Json(client_question));
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct ClientQuestion {
     prompt: String,
-    answers: HashSet<String>
+    answers: HashSet<String>,
+    last_correct: bool,
 }
-
-#[derive(Serialize)]
-enum ToClientMessage {
-    NewQuestion(ClientQuestion),
-    AnsweredCorrect(bool),
-    EndGame
-}
-
-// array o open connections
