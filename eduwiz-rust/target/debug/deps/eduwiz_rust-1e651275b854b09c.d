@@ -1,5 +1,0 @@
-/home/walter/GitHub/eduwiz/eduwiz-rust/target/debug/deps/eduwiz_rust-1e651275b854b09c.rmeta: src/main.rs
-
-/home/walter/GitHub/eduwiz/eduwiz-rust/target/debug/deps/eduwiz_rust-1e651275b854b09c.d: src/main.rs
-
-src/main.rs:
