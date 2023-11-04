@@ -182,9 +182,11 @@ img {
 	height: 50%;
 	margin: 15px;
 	justify-content: center;
-	transition: transform 0.25s;
+	transition: transform 0.25s, filter 0.25s;
+	filter: brightness(85%);
 }
 
 .choice:hover {
 	transform: scale(1.03);
+	filter: brightness(100%);
 }
