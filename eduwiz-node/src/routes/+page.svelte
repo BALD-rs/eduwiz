@@ -13,7 +13,7 @@
 {/if}
 
 <section>
-	<h1>EduWiz</h1>
+	<img width="10%" src="logo-words.png" alt="logo" />
 	<h2>Please log in to continue</h2>
 	<div class="buttons">
 		<button on:click={logIn}>Log In</button>
@@ -23,4 +23,3 @@
       <button on:click={logOut}>Log Out</button>
     </div> -->
 </section>
-
