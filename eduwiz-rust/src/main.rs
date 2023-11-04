@@ -20,6 +20,8 @@ use dotenvy::dotenv;
 
 use r2d2_redis::{r2d2::{self, Pool}, RedisConnectionManager};
 use r2d2_redis::redis::{Commands, RedisResult};
+use tower_http::cors::{Any, CorsLayer};
+
 
 #[tokio::main]
 async fn main() {
@@ -41,7 +43,9 @@ async fn main() {
     
     let keyval: RedisResult<isize> = con.get("my_key");
     println!("{:?}", keyval);
-    let cors = CorsLayer::new().all
+    let cors = CorsLayer::new()
+        .allow_methods(Any)
+        .allow_origin(Any);
 
 
     // Application built
@@ -50,7 +54,8 @@ async fn main() {
         .route("/api/start_room/:room", get(start_room))
         .route("/api/join_room/:room", get(join_room))
         .route("/api/submit_answer", post(submit_answer))
-        .with_state(pool);
+        .with_state(pool)
+        .layer(cors);
 
     // Run the app on 127.0.0.1:3000
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
