@@ -1,5 +1,5 @@
 <script>
-  import { logIn, logOut, user } from '$lib/flow/utils'
+  import { logIn, logOut, user } from '$lib/flow/utils';
 </script>
 
 <svelte:head>
@@ -11,13 +11,15 @@
   <h1>EduWiz</h1>
   {#if $user.loggedIn}
     <h2>Welcome, {$user.addr}!</h2>
+    <div class="buttons">
+      <button on:click={logOut}>Log Out</button>
+    </div>
   {:else}
     <h2>Please log in to continue</h2>
+    <div class="buttons">
+      <button on:click={logIn}>Log In</button>
+    </div>
   {/if}
-  <div class="buttons">
-    <button on:click={logIn}>Log In</button>
-    <button on:click={logOut}>Log Out</button>
-  </div>
 </section>
 
 <style>
@@ -54,4 +56,10 @@
   button:hover {
     background-color: #0056b3;
   }
+
+  button:disabled {
+    background-color: #aaa;
+  }
+
+  /* Add any additional styling for new elements here */
 </style>
