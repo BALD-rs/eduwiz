@@ -9,7 +9,8 @@ use std::net::SocketAddr;
 
 use dotenvy::dotenv;
 
-use redis::{Commands, RedisResult};
+use r2d2_redis::{r2d2, RedisConnectionManager};
+use r2d2_redis::redis::{Commands, RedisResult};
 
 #[tokio::main]
 async fn main() {
@@ -20,21 +21,25 @@ async fn main() {
     let redis_host = std::env::var("HOST").expect("HOST must be set.");
 
     let url = format!("redis://{redis_username}:{redis_password}@{redis_host}");
-    let client = redis::Client::open(url).unwrap();
-    let mut con = client.get_connection().unwrap();
+    let manager = RedisConnectionManager::new(url).unwrap();
+    let pool = r2d2::Pool::builder()
+        .build(manager)
+        .unwrap();
+    
+    let mut con = pool.get().unwrap();
     
     let _ : () = con.set("my_key", 42).unwrap();
     let keyval: RedisResult<isize> = con.get("my_key");
     println!("{:?}", keyval);
-    // build our application with a route
+
+    // Application built
     let app = Router::new()
         // `GET /` goes to `root`
         .route("/", get(root))
         // `POST /users` goes to `create_user`
         .route("/users", post(create_user));
 
-    // run our app with hyper
-    // `axum::Server` is a re-export of `hyper::Server`
+    // Run the app on 127.0.0.1:3000
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     println!("listening on {}", addr);
     axum::Server::bind(&addr)
