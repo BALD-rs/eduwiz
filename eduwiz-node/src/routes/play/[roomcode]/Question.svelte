@@ -6,7 +6,7 @@
 		console.log(`${choice} clicked`);
 	};
 
-	const colors = ['red', 'orange', 'green', 'blue'];
+	const colors = ['#ff2200', '#0fd637', '#0080ff', '#ff00ff'];
 </script>
 
 <div class="question">

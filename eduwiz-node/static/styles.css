@@ -3,7 +3,7 @@
 		Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 	--font-mono: 'Fira Mono', monospace;
 	--color-bg-0: rgb(202, 216, 228);
-	--color-bg-1: #2885ea;
+	--color-bg-1: #d6d6d6;
 	--color-bg-2: hsl(224, 44%, 95%);
 	--color-theme-1: #ff3e00;
 	--color-theme-2: #4075a6;
@@ -182,7 +182,7 @@ img {
 	margin: 15px;
 	justify-content: center;
 	transition: transform 0.25s, filter 0.25s;
-	filter: brightness(85%);
+	filter: brightness(80%);
 }
 
 .choice:hover {
