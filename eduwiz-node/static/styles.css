@@ -157,3 +157,26 @@ img {
 	padding: 10px 0;
 	margin-top: 1em;
 }
+
+.question {
+	display: flex;
+	flex-direction: column;
+	height: 100vh;
+}
+
+.question h1 {
+	height: 20vh;
+}
+
+.choices {
+	height: 100%;
+	display: flex;
+	align-content: flex-end;
+	flex-wrap: wrap;
+}
+
+.choice {
+	width: 50%;
+	height: 50%;
+	margin: 0px;
+}

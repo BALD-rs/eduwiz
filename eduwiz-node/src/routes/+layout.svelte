@@ -13,7 +13,7 @@
 	<meta name="msapplication-TileColor" content="#efefef" />
 	<meta name="theme-color" content="#efefef" />
 
-	<link rel="stylesheet" type="text/css" href="styles.css" />
+	<link rel="stylesheet" type="text/css" href="/styles.css" />
 </svelte:head>
 
 <slot />

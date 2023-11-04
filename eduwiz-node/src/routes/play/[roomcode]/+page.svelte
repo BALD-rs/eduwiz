@@ -5,7 +5,7 @@
 	export let data: RoomCode;
 	$: question = 'this is a test question';
 	$: choices = ['choice A', 'choice B', 'choice C', 'choice D'];
-	let showQuestion = false;
+	let showQuestion = true;
 </script>
 
 <svelte:head>
@@ -16,5 +16,5 @@
 {#if showQuestion}
 	<Question {question} {choices} />
 {:else}
-  <p>waiting for a question...</p>
+	<p>waiting for a question...</p>
 {/if}
