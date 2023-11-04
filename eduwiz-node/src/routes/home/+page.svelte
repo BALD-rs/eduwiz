@@ -14,6 +14,8 @@
         const account = await getAccount();
         console.log(account);
         tokens = account.balance;
+        console.log(tokens);
+        console.log(account.addr);
     });
 </script>
 
