@@ -1,19 +1,24 @@
 use axum::{
+    extract::{
+        ws::{Message, WebSocket, WebSocketUpgrade},
+        TypedHeader,
+    },
     routing::{get, post},
     http::StatusCode,
     response::IntoResponse,
-    Json, Router, extract::State,
+    Json, Router, extract::{State, Path, ConnectInfo},
 };
-use eduwiz_rust::room::Room;
+use futures_util::{sink::SinkExt, stream::{StreamExt, SplitSink, SplitStream}};
+
+use eduwiz_rust::room::{Room, Question};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use std::net::SocketAddr;
+use std::{net::SocketAddr, time::Duration, collections::HashSet};
 
 use dotenvy::dotenv;
 
 use r2d2_redis::{r2d2::{self, Pool}, RedisConnectionManager};
 use r2d2_redis::redis::{Commands, RedisResult};
-
 
 #[tokio::main]
 async fn main() {
@@ -38,11 +43,8 @@ async fn main() {
 
     // Application built
     let app = Router::new()
-        // `GET /` goes to `root`
-        .route("/", get(root))
-        // `POST /users` goes to `create_user`
-        .route("/users", post(create_user))
         .route("/api/create_room", get(create_room))
+        .route("/api/start_room/:room", get(start_room))
         .with_state(pool);
 
     // Run the app on 127.0.0.1:3000
@@ -52,11 +54,6 @@ async fn main() {
         .serve(app.into_make_service())
         .await
         .unwrap();
-}
-
-// basic handler that responds with a static string
-async fn root() -> &'static str {
-    "Hello, World!"
 }
 
 #[derive(Serialize, Deserialize)]
@@ -79,31 +76,77 @@ async fn create_room(
     return  Ok( Json(CreateRoomResponse { room_code: new_room.get_code() }) );
 }
 
-async fn create_user(
-    // this argument tells axum to parse the request body
-    // as JSON into a `CreateUser` type
-    Json(payload): Json<CreateUser>,
-) -> (StatusCode, Json<User>) {
-    // insert your application logic here
-    let user = User {
-        id: 1337,
-        username: payload.username,
-    };
-
-    // this will be converted into a JSON response
-    // with a status code of `201 Created`
-    (StatusCode::CREATED, Json(user))
+// Starts room given and upgrades to a websocket
+async fn start_room(
+    ws: WebSocketUpgrade,
+    ConnectInfo(addr): ConnectInfo<SocketAddr>,
+    Path(room): Path<String>,
+    State(pool): State<Pool<RedisConnectionManager>>,
+) -> impl IntoResponse {
+    ws.on_upgrade(move |socket| handle_host_socket(socket, addr, axum::extract::State(pool)))
 }
 
-// the input to our `create_user` handler
-#[derive(Deserialize)]
-struct CreateUser {
-    username: String,
+async fn handle_host_socket(
+    mut socket: WebSocket,
+    who: SocketAddr,
+    State(pool): State<Pool<RedisConnectionManager>>,
+) {
+    let mut interval = tokio::time::interval(Duration::from_secs(5));
 }
 
-// the output to our `create_user` handler
+// Starts room given and upgrades to a websocket
+async fn join_room(
+    ws: WebSocketUpgrade,
+    ConnectInfo(addr): ConnectInfo<SocketAddr>,
+    Path(room): Path<String>,
+    State(pool): State<Pool<RedisConnectionManager>>,
+) -> impl IntoResponse {
+    
+    ws.on_upgrade(move |socket| handle_client_socket(room, socket, addr, axum::extract::State(pool)))
+}
+
+async fn handle_client_socket(
+    room: String,
+    mut socket: WebSocket,
+    who: SocketAddr,
+    State(pool): State<Pool<RedisConnectionManager>>,
+) {
+    let mut conn = pool.get().unwrap();
+    loop {
+        // Polls for latest room
+        let room: Room = match conn.get(&room) {
+            Ok(room) => room,
+            Err(_) => {
+                println!("Failed to get room");
+                continue;
+            }
+        };
+        // Gets new question to submit
+        let new_question = room.new_question();
+        let client_question = json!(ClientQuestion {
+            prompt: new_question.prompt,
+            answers: new_question.answers,
+        });
+        // Sends new question to client
+        if let Err(e) = socket.send(Message::Text(client_question.to_string())).await {
+            println!("Failed to send message: {}", e);
+        }
+        let message = socket.recv().await;
+        
+    }
+}
+
 #[derive(Serialize)]
-struct User {
-    id: u64,
-    username: String,
+pub struct ClientQuestion {
+    prompt: String,
+    answers: HashSet<String>
 }
+
+#[derive(Serialize)]
+enum ToClientMessage {
+    NewQuestion(ClientQuestion),
+    AnsweredCorrect(bool),
+    EndGame
+}
+
+// array o open connections

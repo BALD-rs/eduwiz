@@ -1,19 +1,29 @@
 use std::collections::{HashMap, HashSet};
+use axum::extract::ws::{WebSocket, Message};
+use futures_util::stream::{SplitSink, SplitStream};
 use rand::{distributions::Alphanumeric, Rng};
 
 use rand::thread_rng;
 use rand::seq::SliceRandom;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use redis_derive::{FromRedisValue, ToRedisArgs};
 use r2d2_redis::redis;
 
 #[derive(Serialize, FromRedisValue, ToRedisArgs)]
 pub struct Room {
+    /// 5 digit alphanumeric room code
     code: String,
+    /// List of users actively in room
     users: Vec<User>,
+    /// Scores per user
+    user_scores: Vec<(User, i32)>,
+    /// Whether or not the room has begun
     started: bool,
+    /// Whether or not to shuffle the order questions appear in
     shuffle_questions: bool,
+    /// Whether or not to shuffle the order answers appear in
     shuffle_answers: bool,
+    /// List of questions for the room
     questions: Vec<Question>,
 }
 
@@ -23,10 +33,10 @@ pub struct User {
     name: String,
 }
 
-#[derive(Serialize, FromRedisValue, ToRedisArgs)]
+#[derive(Serialize, FromRedisValue, ToRedisArgs, Clone)]
 pub struct Question {
-    prompt: String,
-    answers: HashSet<String>,
+    pub prompt: String,
+    pub answers: HashSet<String>,
     correct_answer: String,
 }
 
@@ -35,7 +45,6 @@ impl Question {
         return answer == self.correct_answer;
     }
 }
-
 
 impl Room {
     // Creates new room code with new code and default parameters
@@ -50,11 +59,19 @@ impl Room {
         return Room {
             code: room_code,
             users: Vec::new(),
+            user_scores: Vec::new(),
             started: false,
             shuffle_questions: false,
             shuffle_answers: false,
             questions: Vec::new(),
         }
+    }
+
+    // Returns and removes question from inner list if not empty
+    pub fn new_question(&self) -> Question {
+        let mut rng = rand::thread_rng();
+        let question = rng.gen_range(0..self.questions.len());
+        return self.questions[question].clone();
     }
 
     // Starts room
@@ -68,6 +85,7 @@ impl Room {
         }
     }
 
+    // Gets room code
     pub fn get_code(&self) -> String {
         return self.code.clone();
     }
