@@ -31,21 +31,27 @@ if (browser) {
   fcl.currentUser.subscribe(user.set)
 }
 
-export async function getUsername() {
+export async function getUsername(): Promise<string> {
   const address = (await fcl.currentUser.snapshot()).addr;
-  const response = await fcl.query({
-    cadence:`
-    import UserProfile from 0x6e6efd2c0e2ad3c3
+  let response;
+  try {
+    response = await fcl.query({
+      cadence:`
+      import UserProfile from 0x6e6efd2c0e2ad3c3
 
-    pub fun main(user: Address): String {
-      let auth: AuthAccount = getAuthAccount(user)
-      let nameRef: &UserProfile.User = auth.borrow<&UserProfile.User>(from: /storage/userName) ?? panic("This User Does Not Exist!")
-      return nameRef.name
-    }    
-      `,
-      args: (arg, t) => [arg(address, t.Address)], // Adding the required argument
-  })
+      pub fun main(user: Address): String {
+        let auth: AuthAccount = getAuthAccount(user)
+        let nameRef: &UserProfile.User = auth.borrow<&UserProfile.User>(from: /storage/userName) ?? panic("This User Does Not Exist!")
+        return nameRef.name
+      }    
+        `,
+        args: (arg, t) => [arg(address, t.Address)], // Adding the required argument
+    })
+  } catch (error) {
+    response = "User"; // Return "User" if it panics
+  }
   console.log(response)
+  return response as string; // Ensuring the return type is string
 }
 
 export async function setUsername(name: string) {

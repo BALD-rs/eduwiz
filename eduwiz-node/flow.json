@@ -1,12 +1,12 @@
 {
+	"contracts": {
+		"UserProfile": "./src/lib/flow/contracts/UserProfile.cdc"
+	},
 	"networks": {
 		"emulator": "127.0.0.1:3569",
 		"mainnet": "access.mainnet.nodes.onflow.org:9000",
 		"testing": "127.0.0.1:3569",
 		"testnet": "access.devnet.nodes.onflow.org:9000"
-	},
-	"contracts": {
-		"UserProfile": "./src/lib/flow/contracts/UserProfile.cdc"
 	},
 	"accounts": {
 		"emulator-account": {
@@ -19,7 +19,7 @@
 		}
 	},
 	"deployments": {
-		"testnet":{
+		"testnet": {
 			"testnet-account": [
 				"UserProfile"
 			]

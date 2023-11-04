@@ -1,9 +1,10 @@
 <script>
 	import { goto } from '$app/navigation';
-	import { getAccount, logOut } from '$lib/flow/utils';
+	import { getAccount, getUsername, logOut, setUsername } from '$lib/flow/utils';
 	import { onMount } from 'svelte';
 
 	let roomCode = '';
+	let username = '';
 	$: tokens = '';
 
 	function joinRoom() {
@@ -16,12 +17,9 @@
         tokens = account.balance;
         console.log(tokens);
         console.log(account.addr);
+		username = await getUsername();
+		console.log(username);
     });
-	onMount(async () => {
-		const account = await getAccount();
-		console.log(account);
-		tokens = account.balance;
-	});
 </script>
 
 <svelte:head>
@@ -35,5 +33,7 @@
 		<input type="text" placeholder="Enter room code" bind:value={roomCode} />
 		<button on:click={joinRoom} class="button">Join Room</button>
 		<button on:click={logOut} class="button">Logout</button>
+		<button on:click={async () => await setUsername("bingus")} class="button">Set Username</button>		
+		<h2>Welcome, {username}!</h2>
 	</div>
 </div>
