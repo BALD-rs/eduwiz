@@ -7,7 +7,7 @@
     $: tokens = '';
 
     function joinRoom() {
-        goto(`/live/${roomCode}`);
+        goto(`/play/${roomCode}`);
     }
 
     onMount(async() => {
