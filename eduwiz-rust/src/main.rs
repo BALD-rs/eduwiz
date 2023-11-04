@@ -45,7 +45,9 @@ async fn main() {
     println!("{:?}", keyval);
     let cors = CorsLayer::new()
         .allow_methods(Any)
-        .allow_origin(Any);
+        .allow_origin(Any)
+        .allow_headers(Any)
+        .allow_private_network(true);
 
 
     // Application built
@@ -54,8 +56,8 @@ async fn main() {
         .route("/api/start_room/:room", get(start_room))
         .route("/api/join_room/:room", get(join_room))
         .route("/api/submit_answer", post(submit_answer))
-        .with_state(pool)
-        .layer(cors);
+        .layer(CorsLayer::permissive())
+        .with_state(pool);
 
     // Run the app on 127.0.0.1:3000
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
@@ -81,6 +83,7 @@ async fn create_room(
         Ok(conn) => conn,
         Err(_) => todo!()//return Err(StatusCode::INTERNAL_SERVER_ERROR) 
     };
+    println!("created");
     let room_code = new_room.get_code();
     let room_string = json!(new_room).to_string();
     let _: () = conn.set(room_code, room_string).unwrap();
@@ -116,6 +119,7 @@ async fn join_room(
     State(pool): State<Pool<RedisConnectionManager>>,
 ) -> impl IntoResponse {
     
+    println!("joined");
     ws.on_upgrade(move |socket| handle_client_socket(room, socket, addr, axum::extract::State(pool)))
 }
 
@@ -125,6 +129,7 @@ async fn handle_client_socket(
     who: SocketAddr,
     State(pool): State<Pool<RedisConnectionManager>>,
 ) {
+    println!("handle client socket");
     let mut interval = tokio::time::interval(Duration::from_secs(2));
     let mut conn = pool.get().unwrap();
     loop {
