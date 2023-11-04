@@ -14,6 +14,7 @@ export async function logOut() {
 export const user = writable({
   loggedIn: false,
   addr: null,
+  username: null,
 })
 
 if (browser) {
