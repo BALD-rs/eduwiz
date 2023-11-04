@@ -29,6 +29,7 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@onflow/fcl": "^1.7.0"
+		"@onflow/fcl": "^1.7.0",
+		"esbuild": "^0.19.5"
 	}
 }

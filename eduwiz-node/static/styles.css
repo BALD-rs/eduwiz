@@ -130,26 +130,27 @@ button:hover {
 button:disabled {
 	background-color: #aaa;
 }
+
 .login-container {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	height: 100vh;
+	height: 90vh;
 }
 
 .login-box {
-	width: 400px;
+	width: 450px;
 	padding: 2em;
 	background: white;
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 	border-radius: 15px;
 	text-align: center;
 	box-sizing: border-box;
+
 }
 
 img {
 	width: 100%;
-	margin-bottom: 1em;
 }
 
 .buttons button {
@@ -173,10 +174,17 @@ img {
 	display: flex;
 	align-content: flex-end;
 	flex-wrap: wrap;
+	justify-content: center;
 }
 
 .choice {
-	width: 50%;
+	width: 45%;
 	height: 50%;
-	margin: 0px;
+	margin: 15px;
+	justify-content: center;
+	transition: transform 0.25s;
+}
+
+.choice:hover {
+	transform: scale(1.03);
 }
