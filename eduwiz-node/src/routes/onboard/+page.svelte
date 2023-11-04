@@ -22,10 +22,10 @@
 <div class="login-container">
 	<div class="username-panel">
 		{#if $loading}
-			<h1>Updating username...</h1>
+			<h2>Updating username...</h2>
 			<div class="spinner" />
 		{:else}
-			<h1>Set a username</h1>
+			<h2>Set a username</h2>
 			<form class="internal-panel">
 				<input type="text" name="username" id="username" />
 				<button on:click={async () => updateUsername()}>Submit</button>
