@@ -37,7 +37,7 @@ export async function getUsername(): Promise<string> {
   try {
     response = await fcl.query({
       cadence:`
-      import UserProfile from 0x6e6efd2c0e2ad3c3
+      import UserProfile from 0x97c5b072d69e13b5
 
       pub fun main(user: Address): String {
         let auth: AuthAccount = getAuthAccount(user)
@@ -57,7 +57,7 @@ export async function getUsername(): Promise<string> {
 export async function setUsername(name: string) {
   const transactionId = await fcl.mutate({
     cadence: `
-      import UserProfile from 0x6e6efd2c0e2ad3c3
+      import UserProfile from 0x97c5b072d69e13b5
 
       transaction(name: String) {
           prepare(signer: AuthAccount) {
