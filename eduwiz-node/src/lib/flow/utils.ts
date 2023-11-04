@@ -1,19 +1,24 @@
-import { authenticate, unauthenticate, currentUser } from '@onflow/fcl'
+import * as fcl from '@onflow/fcl'
 import './config'
 import { writable } from 'svelte/store'
 import { browser } from '$app/environment'
 import { goto } from '$app/navigation'
 
 export async function logIn() {
-  const user = await authenticate()
-  if (user.loggedIn) {
+  const u = await fcl.authenticate()
+  if (u.loggedIn) {
     goto('/home')
   }
 }
 
 export async function logOut() {
-  await unauthenticate()
+  await fcl.unauthenticate()
   goto('/')
+}
+
+export async function getAccount() {
+  const address = (await fcl.currentUser.snapshot()).addr;
+  return (await fcl.send([await fcl.getAccount(address)])).account;
 }
 
 export const user = writable({
@@ -23,5 +28,5 @@ export const user = writable({
 })
 
 if (browser) {
-  currentUser.subscribe(user.set)
+  fcl.currentUser.subscribe(user.set)
 }

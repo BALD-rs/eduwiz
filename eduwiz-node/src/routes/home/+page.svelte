@@ -1,31 +1,30 @@
 <script>
     import { goto } from '$app/navigation';
-	import { logOut } from '$lib/flow/utils';
+	import { getAccount, logOut } from '$lib/flow/utils';
+	import { onMount } from 'svelte';
 
     let roomCode = '';
+    $: tokens = '';
 
     function joinRoom() {
         goto(`/live/${roomCode}`);
     }
+
+    onMount(async() => {
+        const account = await getAccount();
+        console.log(account);
+        tokens = account.balance;
+    });
 </script>
+
 <svelte:head>
   <title>Home</title>
   <meta name="description" content="Homepage" />
 </svelte:head>
 
-<style>
-body,
-html {
-  height: 100%;
-  display: grid;
-  background-color: #1e1e2e;
-  color: #cdd6f4;
-  font-family: 'Noto Sans', sans-serif;
-}
-</style>
-
 <div class="topnav">
   <div class="input">
+    <span>Flow tokens: {tokens}</span>
     <input type="text" placeholder="Enter room code" bind:value={roomCode} />
     <button on:click={joinRoom} class="button">Join Room</button>
     <button on:click={logOut} class="button">Logout</button>
