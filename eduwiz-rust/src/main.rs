@@ -2,16 +2,18 @@ use axum::{
     routing::{get, post},
     http::StatusCode,
     response::IntoResponse,
-    Json, Router,
+    Json, Router, extract::State,
 };
 use eduwiz_rust::room::Room;
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::net::SocketAddr;
 
 use dotenvy::dotenv;
 
-use r2d2_redis::{r2d2, RedisConnectionManager};
+use r2d2_redis::{r2d2::{self, Pool}, RedisConnectionManager};
 use r2d2_redis::redis::{Commands, RedisResult};
+
 
 #[tokio::main]
 async fn main() {
@@ -30,17 +32,18 @@ async fn main() {
     let mut con = pool.get().unwrap();
     
     let _ : () = con.set("my_key", 42).unwrap();
+    
     let keyval: RedisResult<isize> = con.get("my_key");
     println!("{:?}", keyval);
-
-    let room = Room::new();
 
     // Application built
     let app = Router::new()
         // `GET /` goes to `root`
         .route("/", get(root))
         // `POST /users` goes to `create_user`
-        .route("/users", post(create_user));
+        .route("/users", post(create_user))
+        .route("/api/create_room", get(create_room))
+        .with_state(pool);
 
     // Run the app on 127.0.0.1:3000
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
@@ -54,6 +57,26 @@ async fn main() {
 // basic handler that responds with a static string
 async fn root() -> &'static str {
     "Hello, World!"
+}
+
+#[derive(Serialize, Deserialize)]
+struct CreateRoomResponse {
+    room_code: String,
+}
+
+// Creates a new room and returns the room code
+async fn create_room(
+    State(pool): State<Pool<RedisConnectionManager>>,
+) -> Result<Json<CreateRoomResponse>, StatusCode> {
+    let new_room = Room::new();
+    let mut conn = match pool.get() {
+        Ok(conn) => conn,
+        Err(_) => todo!()//return Err(StatusCode::INTERNAL_SERVER_ERROR) 
+    };
+    let room_code = new_room.get_code();
+    let room_string = json!(new_room).to_string();
+    let _: () = conn.set(room_code, room_string).unwrap();
+    return  Ok( Json(CreateRoomResponse { room_code: new_room.get_code() }) );
 }
 
 async fn create_user(

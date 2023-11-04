@@ -3,26 +3,39 @@ use rand::{distributions::Alphanumeric, Rng};
 
 use rand::thread_rng;
 use rand::seq::SliceRandom;
+use serde::Serialize;
+use redis_derive::{FromRedisValue, ToRedisArgs};
+use r2d2_redis::redis;
 
+#[derive(Serialize, FromRedisValue, ToRedisArgs)]
 pub struct Room {
     code: String,
-    users: HashMap<String, User>,
+    users: Vec<User>,
     started: bool,
     shuffle_questions: bool,
     shuffle_answers: bool,
     questions: Vec<Question>,
 }
 
+#[derive(Serialize, FromRedisValue, ToRedisArgs)]
 pub struct User {
     id: u64,
     name: String,
 }
 
+#[derive(Serialize, FromRedisValue, ToRedisArgs)]
 pub struct Question {
     prompt: String,
     answers: HashSet<String>,
     correct_answer: String,
 }
+
+impl Question {
+    pub fn check_correct(&self, answer: String) -> bool {
+        return answer == self.correct_answer;
+    }
+}
+
 
 impl Room {
     // Creates new room code with new code and default parameters
@@ -36,7 +49,7 @@ impl Room {
 
         return Room {
             code: room_code,
-            users: HashMap::new(),
+            users: Vec::new(),
             started: false,
             shuffle_questions: false,
             shuffle_answers: false,
@@ -55,14 +68,24 @@ impl Room {
         }
     }
 
+    pub fn get_code(&self) -> String {
+        return self.code.clone();
+    }
+
     // Adds given user to room
     pub fn add_user(&mut self, new_user: User) {
-        self.users.insert(new_user.name.clone(), new_user);
+        self.users.push(new_user);
     }
 
     // Removes given user if exists
-    pub fn remove_user(&mut self, user: User) {
-        self.users.remove(&user.name.clone());
+    pub fn remove_user(&mut self, removed_user: User) {
+        let mut old_user = 0;
+        for (index, user) in self.users.iter().enumerate() {
+            if user.name == removed_user.name {
+                old_user = index;
+            }
+        }
+        self.users.remove(old_user);
     }
 
     // Toggles whether or not question order is shuffled
