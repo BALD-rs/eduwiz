@@ -12,6 +12,10 @@
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",
 			"key": "ebfe83d6541954bcc9773dc6beee3df3bd4a2f0e39d18a515e747d48311f699d"
+		},
+		"testnet-account": {
+			"address": "6e6efd2c0e2ad3c3",
+			"key": "cda55fcb3ce8200b61ea6a8cc411269d6cdca3d276eb7eb368fe3f9d188063f5"
 		}
 	},
 	"deployments": {
