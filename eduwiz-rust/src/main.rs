@@ -41,6 +41,7 @@ async fn main() {
     
     let keyval: RedisResult<isize> = con.get("my_key");
     println!("{:?}", keyval);
+    let cors = CorsLayer::new().all
 
 
     // Application built
