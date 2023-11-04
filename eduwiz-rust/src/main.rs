@@ -7,9 +7,25 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 
+use dotenvy::dotenv;
+
+use redis::{Commands, RedisResult};
+
 #[tokio::main]
 async fn main() {
+    dotenv().expect(".env file not found");
+    
+    let redis_username = std::env::var("USERNAME").expect("USERNAME must be set.");
+    let redis_password = std::env::var("PASSWORD").expect("PASSWORD must be set.");
+    let redis_host = std::env::var("HOST").expect("HOST must be set.");
 
+    let url = format!("redis://{redis_username}:{redis_password}@{redis_host}");
+    let client = redis::Client::open(url).unwrap();
+    let mut con = client.get_connection().unwrap();
+    
+    let _ : () = con.set("my_key", 42).unwrap();
+    let keyval: RedisResult<isize> = con.get("my_key");
+    println!("{:?}", keyval);
     // build our application with a route
     let app = Router::new()
         // `GET /` goes to `root`
