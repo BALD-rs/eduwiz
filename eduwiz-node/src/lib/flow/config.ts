@@ -6,4 +6,5 @@ config({
   'app.detail.icon': 'https://imgs.search.brave.com/Tch9yMPmKQUxcKh-OkYHb2WzBiu4TZw6KshFkVEAsq0/rs:fit:860:0:0/g:ce/aHR0cHM6Ly9ibG9n/LmxvZ29teXdheS5j/b20vd3AtY29udGVu/dC91cGxvYWRzLzIw/MjAvMTIvcmVkZGl0/LWxvZ28tYXBwLmpw/Zw',
   'discovery.wallet': 'https://fcl-discovery.onflow.org/testnet/authn',
   'flow.network': 'testnet',
+  'profileContractAddress': '0x6e6efd2c0e2ad3c3',
 })
