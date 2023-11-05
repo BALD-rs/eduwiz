@@ -2,7 +2,9 @@
 	let questions: any[] = [];
 	let timeLimit: number = 60;
 	const createGame = async () => {
-		// do some shit
+		questions.forEach((question) => {
+			question.correct_answer = question.answers[question.correct_answer];
+		});
 	};
 </script>
 
@@ -19,7 +21,7 @@
 			<span>seconds</span>
 		</div>
 		<div>
-			<button class="create-button">Create</button>
+			<button class="create-button" on:click={createGame}>Create</button>
 		</div>
 	</div>
 	<div class="questions">
@@ -32,7 +34,12 @@
 						<label for="choice{i}-{j}">Choice {j + 1}:</label>
 						<input type="text" id="choice{i}-{j}" bind:value={choice} />
 						<label>
-							<input type="radio" bind:group={question.correct_answer} value={j} checked={question.correct_answer === choice} />
+							<input
+								type="radio"
+								bind:group={question.correct_answer}
+								value={j}
+								checked={question.correct_answer === choice}
+							/>
 							Correct Answer
 						</label>
 					</div>
@@ -47,7 +54,6 @@
 					correct_answer: ''
 				});
 				questions = questions;
-				console.log(questions);
 			}}
 		>
 			Add Question
