@@ -9,7 +9,7 @@ use serde::{Serialize, Deserialize};
 use redis_derive::{FromRedisValue, ToRedisArgs};
 use r2d2_redis::redis;
 
-#[derive(Serialize, FromRedisValue)]
+#[derive(Serialize, FromRedisValue, Deserialize)]
 pub struct Room {
     /// 5 digit alphanumeric room code
     code: String,
@@ -29,7 +29,7 @@ pub struct Room {
     questions: HashMap<String, Question>,
 }
 
-#[derive(Serialize, FromRedisValue, ToRedisArgs)]
+#[derive(Serialize, FromRedisValue, ToRedisArgs, Deserialize)]
 pub struct User {
     id: u64,
     name: String,

@@ -229,6 +229,7 @@ dependencies = [
  "futures-util",
  "r2d2_redis",
  "rand",
+ "redis 0.23.3",
  "redis-derive",
  "serde",
  "serde_json",
@@ -700,6 +701,23 @@ dependencies = [
  "percent-encoding",
  "ryu",
  "sha1 0.6.1",
+ "url",
+]
+
+[[package]]
+name = "redis"
+version = "0.23.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4f49cdc0bb3f412bf8e7d1bd90fe1d9eb10bc5c399ba90973c14662a27b3f8ba"
+dependencies = [
+ "combine",
+ "itoa 1.0.9",
+ "percent-encoding",
+ "ryu",
+ "serde",
+ "serde_json",
+ "sha1_smol",
+ "socket2 0.4.10",
  "url",
 ]
 

@@ -9,7 +9,7 @@
 	let showQuestion = false;
 
 	const submitAnswer = async (answer: string) => {
-		const res = await fetch('http://localhost:3000/api/submit_answer', {
+		const res = await fetch('http://127.0.0.1:3000/api/submit_answer', {
 			method: 'POST',
 			body: JSON.stringify({
 				user: 'freddy fazbear',
@@ -34,7 +34,7 @@
 		// const res = await fetch(`http://localhost:3000/api/join_room/${data.roomCode}`);
 		// console.log(res);
 		// console.log(res.status)
-		socket = new WebSocket(`ws://localhost:3000/api/join_room/${data.roomCode}`);
+		socket = new WebSocket(`ws://127.0.0.1:3000/api/join_room/${data.roomCode}`);
 		socket.onopen = () => {
 			console.log('WebSocket connection established');
 			showQuestion = true;
