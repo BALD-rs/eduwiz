@@ -6,7 +6,7 @@
 	let timeLimit: number = 60;
 
 	onMount(() => {
-		const storedQuestions = localStorage.getItem('questions')
+		const storedQuestions = localStorage.getItem('questions');
 		if (storedQuestions) {
 			questions = JSON.parse(storedQuestions);
 		}
@@ -36,7 +36,7 @@
 			questions: questions
 		};
 		console.log(data);
-		const res = await fetch('http://127.0.0.1:3000/api/create_room', {
+		const res = await fetch(import.meta.env.VITE_URL + 'create_room', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
@@ -162,8 +162,8 @@
 	}
 
 	div.question-input label {
-        padding: 0 0.5em;
-        font-size: 20px;
+		padding: 0 0.5em;
+		font-size: 20px;
 	}
 
 	div.answer-container {
@@ -180,20 +180,20 @@
 		flex: 1;
 	}
 
-	div.answer-input input[type=text] {
-        flex: 0 0 80%;
+	div.answer-input input[type='text'] {
+		flex: 0 0 80%;
 	}
 
-	div.answer-input input[type=radio] {
-        flex: 1;
+	div.answer-input input[type='radio'] {
+		flex: 1;
 	}
 
 	input[type='text'] {
 		padding: 10px;
-        border-radius: 5px;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+		border-radius: 5px;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 	}
 
-    input[type='radio'] {
-    }
+	input[type='radio'] {
+	}
 </style>

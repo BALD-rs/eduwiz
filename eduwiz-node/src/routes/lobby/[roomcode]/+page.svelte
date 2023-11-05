@@ -7,7 +7,7 @@
 	let socket: WebSocket;
 	function start() {
 		killInterval();
-		socket = new WebSocket(`ws://127.0.0.1:3000/api/start_room/${data.roomCode}`);
+		socket = new WebSocket(import.meta.env.VITE_WS + `start_room/${data.roomCode}`);
 		socket.onmessage = async (event) => {
 			console.log('Message from server:', event.data);
 			players = JSON.parse(event.data);
@@ -29,7 +29,7 @@
 	}
 
 	async function getPlayers() {
-		const res = await fetch(`http://127.0.0.1:3000/api/get_users/${data.roomCode}`);
+		const res = await fetch(import.meta.env.VITE_URL + `get_users/${data.roomCode}`);
 		const json = await res.json();
 		const users: string[] = json.users;
 
