@@ -4,7 +4,7 @@
 <h3>Available at <a href="https://EduWiz.study">EduWiz.study</a> courtesy of <a href="https://www.godaddy.com/">GoDaddy</a></h3>
 </div>
 
-## EduWiz is an online webapp that gamifies learning, increasing in class engagement and educational outcomes using web3.
+## EduWiz is an online webapp that gamifies learning, increasing in class engagement and educational outcomes using Web3.
 <br>
 <br>
 Eduwiz allows students to compete in real time with each other, for virtual rewards and profiles stored on the blockchain. 
