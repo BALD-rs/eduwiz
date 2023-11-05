@@ -7,7 +7,7 @@ pub contract UserProfile {
 
         init(name: String) {
             self.name = name
-            self.level = 0
+            self.level = 1
             self.quizzesCompleted = 0
         }
 
@@ -28,15 +28,15 @@ pub contract UserProfile {
         }
 
         pub fun quizComplete() {
-            self.quizzesCompleted = self.quizzesCompleted + 1
+            self.quizzesCompleted = self.quizzesCompleted + 15
             
-            if self.quizzesCompleted >= 100 {
+            if self.quizzesCompleted >= 75 {
                 self.level = 5
-            } else if self.quizzesCompleted >= 50 {
+            } else if self.quizzesCompleted >= 40 {
                 self.level = 4
-            } else if self.quizzesCompleted >= 25 {
+            } else if self.quizzesCompleted >= 15 {
                 self.level = 3
-            } else if self.quizzesCompleted >= 10 {
+            } else if self.quizzesCompleted >= 5 {
                 self.level = 2
             } else {
                 self.level = 1
