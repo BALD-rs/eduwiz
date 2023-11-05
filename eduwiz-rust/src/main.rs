@@ -100,22 +100,58 @@ async fn create_room(
 // Starts room given and upgrades to a websocket
 async fn start_room(
     ws: WebSocketUpgrade,
-    ConnectInfo(addr): ConnectInfo<SocketAddr>,
     Path(room): Path<String>,
     State(pool): State<Pool<RedisConnectionManager>>,
 ) -> impl IntoResponse {
-    ws.on_upgrade(move |socket| handle_host_socket(socket, addr, axum::extract::State(pool)))
+    ws.on_upgrade(move |socket| handle_host_socket(room, socket, pool))
 }
 
 async fn handle_host_socket(
+    room: String,
     mut socket: WebSocket,
-    who: SocketAddr,
-    State(pool): State<Pool<RedisConnectionManager>>,
+    pool: Pool<RedisConnectionManager>,
 ) {
     let mut interval = tokio::time::interval(Duration::from_secs(5));
+    let mut time = 0;
     loop {
         interval.tick().await;
+        time += 5;
+
+        let r = get_room(&room, pool.clone()).await.unwrap();
+
+
+
+        if time > 60 {
+            break;
+        }
     }
+}
+
+async fn get_room(room: &String, pool: Pool<RedisConnectionManager>) -> Result<Room,()> {
+    let mut conn = pool.get().unwrap();
+    let mut cmd = Cmd::new();
+        cmd.arg("JSON.GET").arg(room.clone()).arg("$");
+        let json_req = conn.req_command(&cmd);
+
+        let mut room: String = match json_req {
+            Ok(value) => {
+                match String::from_redis_value(&value) {
+                    Ok(room_json) => room_json,
+                    Err(e) => return Err(())
+                }
+            }
+            Err(e) => {
+                println!("{}", e);
+                println!("Failed to get room");
+                return Err(());
+            }
+        };
+
+        room.pop();
+        room.remove(0);
+
+        let r: Room = serde_json::from_str(&room).unwrap();
+        return Ok(r);
 }
 
 // Starts room given and upgrades to a websocket
@@ -135,37 +171,14 @@ async fn handle_client_socket(
     //who: SocketAddr,
     pool: Pool<RedisConnectionManager>,
 ) {
-    println!("handle client socket");
+    println!("one client joined");
     let mut interval = tokio::time::interval(Duration::from_secs(2));
     let mut conn = pool.get().unwrap();
     loop {
         // Executes every 2 seconds
         interval.tick().await;
-        // Polls for latest room
-        let mut cmd = Cmd::new();
-        cmd.arg("JSON.GET").arg(room.clone()).arg("$");
-        let json_req = conn.req_command(&cmd);
-
-        let mut room: String = match json_req {
-            Ok(value) => {
-                match String::from_redis_value(&value) {
-                    Ok(room_json) => room_json,
-                    Err(e) => continue
-                }
-            }
-            Err(e) => {
-                println!("{}", e);
-                println!("Failed to get room");
-                continue;
-            }
-        };
-
-        room.pop();
-        room.remove(0);
-
-        let r: Room = serde_json::from_str(&room).unwrap();
-
-        //println!("TICKING");
+        // Grabs latest room data
+        let r = get_room(&room, pool.clone()).await.unwrap();
 
         if r.get_finished() {
             let _: () = socket.send(Message::Text(String::from("END"))).await.unwrap();
@@ -184,7 +197,6 @@ pub struct QuestionInfo {
     pub question: String,
     pub answer: String,
 }
-
 
 async fn submit_answer(
     State(pool): State<Pool<RedisConnectionManager>>,
