@@ -218,8 +218,14 @@ async fn submit_answer(
     if let Some(b_q) = backend_questions.get(&payload.question) {
         if b_q.check_correct(payload.answer) {
             let user_score: RedisResult<isize> = conn.get(payload.user.clone());
-            let user_score = user_score.unwrap();
-            let _: () = conn.set(&payload.user.to_string(), user_score).unwrap();
+            match user_score {
+                Ok(score) => {
+                    let _: () = conn.set(&payload.user.to_string(), score + 1).unwrap();
+                }
+                Err(_) => {
+                    let _: () = conn.set(&payload.user.to_string(), 1).unwrap();
+                }
+            }
             last_correct = true;
         }
     }
