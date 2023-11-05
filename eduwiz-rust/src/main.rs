@@ -112,22 +112,29 @@ async fn handle_host_socket(
     pool: Pool<RedisConnectionManager>,
 ) {
     let mut conn = pool.get().unwrap();
-    let mut interval = tokio::time::interval(Duration::from_secs(15));
+    let mut interval = tokio::time::interval(Duration::from_secs(1));
     let mut time = 0;
+    // Starts and gets room from redis database
+    let mut r = get_room(&room, pool.clone()).await.unwrap();
+    r.start_room();
+    // Updates room on redis end
+    let mut cmd = Cmd::new();
+    cmd.arg("JSON.SET").arg(&room).arg("$").arg(json!(r).to_string());
+let apple = conn.req_command(&cmd).unwrap();
     loop {
         interval.tick().await;
         time += 1;
 
-        let mut r = get_room(&room, pool.clone()).await.unwrap();
-
-        r.start_room();
-
-        let mut cmd = Cmd::new();
-        cmd.arg("JSON.SET").arg(&room).arg("$").arg(json!(r).to_string());
-
-        let apple = conn.req_command(&cmd).unwrap();
 
         if time > 60 {
+            // Updates room from Redis database
+            let mut r = get_room(&room, pool.clone()).await.unwrap();
+            // Ends room
+            r.end_room();
+
+            let mut cmd = Cmd::new();
+            cmd.arg("JSON.SET").arg(&room).arg("$").arg(json!(r).to_string());
+            let apple = conn.req_command(&cmd).unwrap();
             break;
         }
     }

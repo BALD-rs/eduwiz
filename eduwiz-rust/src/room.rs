@@ -65,7 +65,7 @@ impl Room {
         first_answers.insert("1".to_string());
         first_answers.insert("22".to_string());
         let first_quest = Question {
-            prompt: String::from("How many balls does Joe Biden have?"),
+            prompt: String::from("How many Nobel Prizes does Joe Biden have?"),
             answers: first_answers,
             correct_answer: String::from("5"),
         };
@@ -102,6 +102,12 @@ impl Room {
             // if self.shuffle_questions {
             //     self.questions.shuffle(&mut thread_rng());
             // }
+        }
+    }
+
+    pub fn end_room(&mut self) {
+        if !self.finished {
+            self.finished = true;
         }
     }
 
