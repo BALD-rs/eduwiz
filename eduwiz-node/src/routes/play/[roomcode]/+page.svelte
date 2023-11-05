@@ -1,16 +1,20 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type { RoomCode } from './+page';
-	// import Question from './Question.svelte';
 
 	export let data: RoomCode;
 	$: question = '';
 	$: choices = ['', '', '', ''];
 	let showQuestion = false;
+	let gameOver = false;
 
 	const submitAnswer = async (answer: string) => {
+		showQuestion = false;
 		const res = await fetch('http://127.0.0.1:3000/api/submit_answer', {
 			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
 			body: JSON.stringify({
 				user: 'freddy fazbear',
 				room: data.roomCode,
@@ -18,9 +22,12 @@
 				answer: answer
 			})
 		});
-		console.log(res.status, await res.json())
-		showQuestion = false;
-	}
+		const resJson = await res.json();
+		console.log(resJson);
+		question = resJson.prompt;
+		choices = resJson.answers;
+		showQuestion = true;
+	};
 
 	const handleChoiceClick = (answer: string) => {
 		console.log(`Answer choice "${answer}" clicked`);
@@ -31,19 +38,23 @@
 
 	let socket;
 	onMount(async () => {
-		// const res = await fetch(`http://localhost:3000/api/join_room/${data.roomCode}`);
-		// console.log(res);
-		// console.log(res.status)
 		socket = new WebSocket(`ws://127.0.0.1:3000/api/join_room/${data.roomCode}`);
 		socket.onopen = () => {
 			console.log('WebSocket connection established');
-			showQuestion = true;
-			// submit an empty answer to receive the first question
-			submitAnswer('');
 		};
 
-		socket.onmessage = (event) => {
+		socket.onmessage = async (event) => {
 			console.log('Message from server:', event.data);
+			switch (event.data) {
+				case 'START':
+					// submit an empty answer to receive the first question
+					await submitAnswer(' ');
+					break;
+				case 'END':
+					showQuestion = false;
+					gameOver = true;
+					break;
+			}
 		};
 
 		socket.onclose = () => {
@@ -65,7 +76,7 @@
 	<div class="question">
 		<h1>{question}</h1>
 		<div class="choices">
-			{#each choices as choice, i (choice)}
+			{#each choices as choice, i (i)}
 				<button
 					class="choice"
 					style="background-color: {colors[i]};"
@@ -76,6 +87,8 @@
 			{/each}
 		</div>
 	</div>
+{:else if gameOver}
+	<p>game over! go <a href="/home">home</a></p>
 {:else}
 	<p>waiting for a question...</p>
 {/if}

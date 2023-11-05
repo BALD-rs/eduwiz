@@ -116,7 +116,7 @@ async fn handle_host_socket(
     let mut time = 0;
     loop {
         interval.tick().await;
-        time += 5;
+        time += 1;
 
         let mut r = get_room(&room, pool.clone()).await.unwrap();
 
@@ -127,7 +127,7 @@ async fn handle_host_socket(
 
         let apple = conn.req_command(&cmd).unwrap();
 
-        if time > 10 {
+        if time > 60 {
             break;
         }
     }
