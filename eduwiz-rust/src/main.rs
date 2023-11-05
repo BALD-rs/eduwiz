@@ -11,7 +11,7 @@ use axum::{
 };
 use futures_util::{sink::SinkExt, stream::{StreamExt, SplitSink, SplitStream}};
 
-use eduwiz_rust::room::{Room, Question};
+use eduwiz_rust::room::{Room, Question, User};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use core::time;
@@ -52,12 +52,12 @@ async fn main() {
         .allow_headers(Any)
         .allow_private_network(true);
 
-
     // Application built
     let app = Router::new()
         .route("/api/create_room", post(create_room))
         .route("/api/start_room/:room", get(start_room))
-        .route("/api/join_room/:room", get(join_room))
+        .route("/api/join_room/:room/:user", get(join_room))
+        .route("/api/get_users/:room", get(get_users))
         .route("/api/submit_answer", post(submit_answer))
         .layer(CorsLayer::permissive())
         .with_state(pool);
@@ -69,6 +69,21 @@ async fn main() {
         .serve(app.into_make_service())
         .await
         .unwrap();
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct RoomUsers {
+    users: Vec<String>,
+}
+
+pub async fn get_users (
+    Path(room): Path<String>,
+    State(pool): State<Pool<RedisConnectionManager>>,
+) -> Result<Json<RoomUsers>, StatusCode>{
+    let mut conn = pool.get().unwrap();
+    let r = get_room(&room, pool).await.unwrap();
+    let users = r.get_usernames();
+    return Ok(Json(RoomUsers { users: users }));
 }
 
 
@@ -135,13 +150,14 @@ async fn handle_host_socket(
     // Updates room on redis end
     let mut cmd = Cmd::new();
     cmd.arg("JSON.SET").arg(&room).arg("$").arg(json!(r).to_string());
-let apple = conn.req_command(&cmd).unwrap();
+    let apple = conn.req_command(&cmd).unwrap();
     loop {
         interval.tick().await;
         time += 1;
+        let mut r = get_room(&room, pool.clone()).await.unwrap();
 
 
-        if time > 60 {
+        if time > r.get_time_limit() {
             // Updates room from Redis database
             let mut r = get_room(&room, pool.clone()).await.unwrap();
             // Ends room
@@ -186,9 +202,20 @@ async fn get_room(room: &String, pool: Pool<RedisConnectionManager>) -> Result<R
 async fn join_room(
     ws: WebSocketUpgrade,
     //ConnectInfo(addr): ConnectInfo<SocketAddr>,
-    Path(room): Path<String>,
+    Path((room, user)): Path<(String, String)>,
     State(pool): State<Pool<RedisConnectionManager>>,
 ) -> impl IntoResponse {
+    let mut conn = pool.get().unwrap();
+    let mut r = get_room(&room, pool.clone()).await.unwrap();
+    let new_user = User {
+        id: 7,
+        name: user.clone(),
+    };
+    
+    r.add_user(new_user);
+    let mut cmd = Cmd::new();
+    cmd.arg("JSON.SET").arg(&room).arg("$").arg(json!(r).to_string());
+    let apple = conn.req_command(&cmd).unwrap();
     println!("joined");
     ws.on_upgrade(move |socket| handle_client_socket(room, socket, pool))
 }

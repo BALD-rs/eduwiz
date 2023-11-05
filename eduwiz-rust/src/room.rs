@@ -31,10 +31,10 @@ pub struct Room {
     time_limit: i32,
 }
 
-#[derive(Serialize, FromRedisValue, ToRedisArgs, Deserialize)]
+#[derive(Serialize, FromRedisValue, ToRedisArgs, Deserialize, Clone)]
 pub struct User {
-    id: u64,
-    name: String,
+    pub id: u64,
+    pub name: String,
 }
 
 #[derive(Serialize, FromRedisValue, ToRedisArgs, Clone, Deserialize)]
@@ -71,6 +71,10 @@ impl Room {
             questions: HashMap::new(),
             time_limit: 60,
         }
+    }
+
+    pub fn get_time_limit(&self) -> i32 {
+        return self.time_limit;
     }
 
     // Returns and removes question from inner list if not empty
@@ -127,6 +131,14 @@ impl Room {
 
     pub fn get_started(&self) -> bool {
         return self.started;
+    }
+
+    pub fn get_usernames(&self) -> Vec<String>{
+        let mut usernames = Vec::new();
+        for user in &self.users {
+            usernames.push(user.name.clone());
+        }
+        return usernames;
     }
 
     // Adds given user to room
