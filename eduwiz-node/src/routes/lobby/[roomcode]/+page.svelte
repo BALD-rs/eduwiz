@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import type { RoomCode } from './+page';
 
 	export let data: RoomCode;
@@ -50,6 +50,10 @@
 	}
 
 	const interval = setInterval(getPlayers, 1000);
+
+	onMount(() => {
+		window.onbeforeunload = (e) => '';
+	});
 
 	onDestroy(() => {
 		killInterval();

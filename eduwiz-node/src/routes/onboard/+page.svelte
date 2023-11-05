@@ -22,7 +22,7 @@
 <div class="login-container">
 	<div class="username-panel">
 		{#if $loading}
-			<h2>Updating username...</h2>
+			<h2>Updating the blockchain...</h2>
 			<div class="spinner" />
 		{:else}
 			<h2>Choose a username:</h2>
