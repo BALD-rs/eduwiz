@@ -86,9 +86,12 @@ impl Room {
     // Returns and removes question from inner list if not empty
     pub fn new_question(&self) -> Question {
         let mut rng = rand::thread_rng();
-        let question = rng.gen_range(0..self.questions.len());
-        let options: Vec<&String> = self.questions.keys().collect();
-        return self.questions.get(options[question]).unwrap().clone();
+        let question = rng.gen_range(0..self.questions.keys().len()+1);
+        let mut potentialq = Vec::new();
+        for key in self.questions.keys() {
+            potentialq.push(key);
+        }
+        return self.questions.get(potentialq[question]).unwrap().clone();
     }
 
     // Starts room
