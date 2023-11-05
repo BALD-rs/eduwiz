@@ -102,7 +102,7 @@
 		margin: 2em auto;
 		padding: 2em;
 		background: white;
-		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+		box-shadow: 0 0px 8px rgba(0, 0, 0, 0.1);
 		border-radius: 15px;
 		box-sizing: border-box;
 	}
@@ -135,8 +135,9 @@
 		overflow-y: auto;
 		display: flex;
 		flex-direction: column;
-		border: 2px solid rgb(131, 131, 131);
 		border-radius: 15px;
+		background-color: gainsboro;
+		box-shadow: 0px 0px 8px rgba(100, 100, 100, 50);
 	}
 
 	div.bottom-bar {
@@ -191,6 +192,6 @@
 	input[type='text'] {
 		padding: 10px;
 		border-radius: 5px;
-		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+		box-shadow: 0 0px 5px rgba(180, 180, 180, 10);
 	}
 </style>
