@@ -11,7 +11,7 @@
 	let numCorrect = 0;
 	let numAnswered = 0;
 
-	const loading = writable(false)
+	const loading = writable(false);
 
 	const submitAnswer = async (answer: string) => {
 		const previousStatus = status; // to check later on whether this is the first empty submission
@@ -22,7 +22,7 @@
 			question: question,
 			answer: answer
 		};
-		console.log(reqBody)
+		console.log(reqBody);
 		const res = await fetch(import.meta.env.VITE_URL + 'submit_answer', {
 			method: 'POST',
 			headers: {
@@ -58,7 +58,7 @@
 		goto('/home');
 	}
 
-	const colors = ['#ff2200', '#0fd637', '#0080ff', '#ff00ff'];
+	const colors = ['#0075ff', '#0075ff', '#0075ff', '#0075ff'];
 
 	let socket;
 	onMount(async () => {
@@ -114,34 +114,38 @@
 		</div>
 	</div>
 {:else if status == 'CORRECT'}
-<div class="main">
-	<div class="center-box">
-		<h1>✅</h1>
-		<p style="color: green;">CORRECT!</p>
-		<p>{numCorrect}/{numAnswered}</p>
-	</div>
-</div>
-{:else if status == 'INCORRECT'}
-<div class="main">
-	<div class="center-box">
-		<h1>❌</h1>
-		<p style="color: red;">INCORRECT!</p>
-		<p>{numCorrect}/{numAnswered}</p>
-	</div>
-</div>
-{:else if status == 'GAME OVER'}
-<div class="main">
-	<div class="center-box">
-		{#if $loading}
-			<h2>Updating the blockchain...</h2>
-			<div class="spinner" />
-		{:else}
-			<p>Game Over!</p>
+	<div class="main">
+		<div class="center-box">
+			<h1>✅</h1>
+			<p style="color: green;">CORRECT!</p>
 			<p>{numCorrect}/{numAnswered}</p>
-			<button on:click={async () => {levelUp()}}>Level up!</button>
-		{/if}
+		</div>
 	</div>
-</div>
+{:else if status == 'INCORRECT'}
+	<div class="main">
+		<div class="center-box">
+			<h1>❌</h1>
+			<p style="color: red;">INCORRECT!</p>
+			<p>{numCorrect}/{numAnswered}</p>
+		</div>
+	</div>
+{:else if status == 'GAME OVER'}
+	<div class="main">
+		<div class="center-box">
+			{#if $loading}
+				<h2>Updating the blockchain...</h2>
+				<div class="spinner" />
+			{:else}
+				<p>Game Over!</p>
+				<p>{numCorrect}/{numAnswered}</p>
+				<button
+					on:click={async () => {
+						levelUp();
+					}}>Level up!</button
+				>
+			{/if}
+		</div>
+	</div>
 {/if}
 
 <style>
@@ -151,6 +155,10 @@
 
 	div.choices {
 		font-size: 4em;
+	}
+
+	.choice {
+		border-radius: 25px;
 	}
 
 	div.main {

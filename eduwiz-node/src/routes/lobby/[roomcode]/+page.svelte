@@ -72,22 +72,64 @@
 	<meta name="description" content="Lobby" />
 </svelte:head>
 
-<div>
+<div class="main">
 	{#if socket == null}
-		<h1>Code</h1>
-		<h2>{data.roomCode}</h2>
-		<ul id="playerList" />
-		<button on:click={start}>Start</button>
+		<div class="center-box">
+			<h1>Code</h1>
+			<h2>{data.roomCode}</h2>
+			<ul id="playerList" />
+			<button on:click={start}>Start</button>
+		</div>
 	{:else}
-		<h1>Leaderboard</h1>
-		<table>
-			<thead>
-				<tr>
-					<th> Player </th>
-					<th> Score </th>
-				</tr>
-			</thead>
-			<tbody id="leaderboard" />
-		</table>
+		<div class="center-box flex">
+			<h1>Leaderboard</h1>
+			<table>
+				<thead>
+					<tr>
+						<th> Player </th>
+						<th> Score </th>
+					</tr>
+				</thead>
+				<tbody id="leaderboard" />
+			</table>
+		</div>
 	{/if}
 </div>
+
+<style>
+	div.main {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 90vh;
+	}
+
+	div.center-box {
+		width: 450px;
+		padding: 2em;
+		background: white;
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+		border-radius: 15px;
+		text-align: center;
+		box-sizing: border-box;
+		margin: 30px;
+		font-size: 2em;
+	}
+	th {
+		padding-left: 20px;
+		padding-right: 20px;
+	}
+
+	ul {
+		list-style-type: none;
+		margin: 0;
+		margin-bottom: 50px;
+		padding: 0;
+	}
+
+	.flex {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+	}
+</style>
