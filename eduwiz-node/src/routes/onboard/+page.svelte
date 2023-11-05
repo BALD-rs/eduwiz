@@ -28,8 +28,8 @@
 			<h2>Choose a username:</h2>
 			<form class="internal-panel">
 				<input type="text" name="username" id="username" />
+				<button on:click={async () => updateUsername()}>Submit</button>
 			</form>
-			<button on:click={async () => updateUsername()}>Submit</button>
 		{/if}
 	</div>
 </div>

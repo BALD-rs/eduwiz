@@ -15,8 +15,9 @@
 	<meta name="description" content="Login page" />
 </svelte:head>
 
-<div id="header-bar">
-	<h1 style="color: white">EduWiz</h1>
+<div class="top-bar">
+	<h1 style="color: white;">EduWiz</h1>
+	<button on:click={() => goto('/about')}>About</button>
 </div>
 
 <div class="login-container">
@@ -29,4 +30,23 @@
 	</div>
 </div>
 
+<style>
+	div.top-bar {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 0 1em;
+		background-color: blue;
+		color: white;
+	}
 
+	div.top-bar button {
+		margin: 0 20px;
+		box-shadow: 0 0px 5px rgba(1, 1, 80, 255);
+	}
+
+	div.top-bar h1 {
+		margin: 0 20px;
+	}
+
+</style>
