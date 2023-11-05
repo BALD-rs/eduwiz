@@ -27,6 +27,7 @@
 <div class="top-bar">
 	<h2>Welcome, {username}!</h2>
 	<button on:click={() => goto('/onboard')} class="set-username button">Set Username</button>
+	<button on:click={logOut}>Log Out</button>
 </div>
 <div class="main">
 	<div class="center-box">
