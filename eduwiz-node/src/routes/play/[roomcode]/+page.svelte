@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { quizComplete } from '$lib/flow/utils.js';
 	import { onMount } from 'svelte';
 
 	export let data;
@@ -109,4 +110,5 @@
 	<p>{numCorrect}/{numAnswered} so far</p>
 {:else if status == 'GAME OVER'}
 	<p>game over! you got {numCorrect}/{numAnswered} right. <a href="/home">return to home</a></p>
+	<button on:click={quizComplete}>level up!</button>
 {/if}

@@ -44,7 +44,7 @@
 	<div class="center-box">
 		<img src="/logo-words.png" alt="logo" />
 		<div class="input">
-			<input type="text" placeholder="  Enter room code" id="room-code" bind:value={roomCode} />
+			<input type="text" placeholder="Enter room code" id="room-code" bind:value={roomCode} />
 			<button on:click={joinRoom} class="button" id="join-room">Join Room</button>
 		</div>
 	</div>
@@ -93,8 +93,8 @@
 	}
 
 	#room-code {
-		width: 100%;
-		padding: 10px 0px;
+		width: 95%;
+		padding: 10px;
 		border-radius: 5px;
 		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 		margin-bottom: 15px;
@@ -102,7 +102,7 @@
 
 	#join-room {
 		width: 100%;
-		padding: 10px 0px;
+		padding: 10px;
 	}
 
 	.button {
