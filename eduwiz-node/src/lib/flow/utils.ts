@@ -7,7 +7,6 @@ import { goto } from '$app/navigation'
 export async function logIn() {
   const u = await fcl.authenticate()
 
-  //TODO THIS DOES NOT WORK
   if (u.loggedIn) {
     if (await getLevel() == 0) {
       goto('/onboard')
