@@ -6,7 +6,12 @@ import { goto } from '$app/navigation'
 
 export async function logIn() {
   const u = await fcl.authenticate()
-  if (u.loggedIn) {
+
+  //TODO THIS DOES NOT WORK
+  if (await getLevel() == 0) {
+    goto('/onboard')
+  }
+  else if (u.loggedIn) {
     goto('/home')
   }
 }

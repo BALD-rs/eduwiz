@@ -1,10 +1,12 @@
-<script>
+<script lang='ts'>
 	import { goto } from '$app/navigation';
-	import { getAccount, getUsername, logOut, setUsername } from '$lib/flow/utils';
+	import { getAccount, getLevel, getQuizzesComplete, getUsername, logOut, setUsername } from '$lib/flow/utils';
 	import { onMount } from 'svelte';
 
 	let roomCode = '';
 	let username = '';
+	let quizzesCompleted: number;
+	let level: number;
 
 	function joinRoom() {
 		goto(`/play/${roomCode}`);
@@ -16,6 +18,10 @@
 		console.log(account.address);
 		username = await getUsername();
 		console.log(username);
+		quizzesCompleted = await getQuizzesComplete();
+		console.log(quizzesCompleted);
+		level = await getLevel();
+		console.log(level);
 	});
 </script>
 
@@ -30,13 +36,19 @@
 </div>
 <div class="main">
 	<div class="center-box">
-		<h2>Welcome, {username}!</h2>
+		<img src={`/shields/shield-${level}.png`} alt="shield" style="width: 60%" />
+		<h1><b>Welcome, {username}</b>!</h1>
+		<h2><b>Level:</b> {level}</h2>
+		<h2><b>Quizzes Completed:</b> {quizzesCompleted}</h2>
+	</div>
+	<div class="center-box">
 		<img src="/logo-words.png" alt="logo" />
 		<div class="input">
 			<input type="text" placeholder="  Enter room code" id="room-code" bind:value={roomCode} />
 			<button on:click={joinRoom} class="button" id="join-room">Join Room</button>
 		</div>
 	</div>
+	
 </div>
 
 <style>
@@ -57,8 +69,8 @@
 	}
 
 	div.top-bar button {
-		margin: 0;
-
+		margin: 0 20px;
+		box-shadow: 0 0px 5px rgba(1, 1, 80, 255);
 	}
 
 	div.center-box {
@@ -69,6 +81,7 @@
 		border-radius: 15px;
 		text-align: center;
 		box-sizing: border-box;
+		margin: 30px;
 	}
 
 	div.input {

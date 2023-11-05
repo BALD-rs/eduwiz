@@ -28,7 +28,7 @@ pub contract UserProfile {
         }
 
         pub fun quizComplete() {
-            self.quizzesCompleted = self.quizzesCompleted + 15
+            self.quizzesCompleted = self.quizzesCompleted + 1
             
             if self.quizzesCompleted >= 75 {
                 self.level = 5
