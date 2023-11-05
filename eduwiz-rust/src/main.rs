@@ -112,7 +112,7 @@ async fn handle_host_socket(
     pool: Pool<RedisConnectionManager>,
 ) {
     let mut conn = pool.get().unwrap();
-    let mut interval = tokio::time::interval(Duration::from_secs(5));
+    let mut interval = tokio::time::interval(Duration::from_secs(15));
     let mut time = 0;
     loop {
         interval.tick().await;
@@ -180,18 +180,22 @@ async fn handle_client_socket(
     println!("one client joined");
     let mut interval = tokio::time::interval(Duration::from_secs(2));
     let mut conn = pool.get().unwrap();
+    let mut finished_sent = false;
+    let mut started_sent = false;
     loop {
         // Executes every 2 seconds
         interval.tick().await;
         // Grabs latest room data
         let r = get_room(&room, pool.clone()).await.unwrap();
 
-        if r.get_finished() {
+        if r.get_finished() && !finished_sent{
             let _: () = socket.send(Message::Text(String::from("END"))).await.unwrap();
+            finished_sent = true;
         }
 
-        if r.get_started() {
+        if r.get_started() && !started_sent{
             let _: () = socket.send(Message::Text(String::from("START"))).await.unwrap();
+            started_sent = true;
         }
     }
 }
