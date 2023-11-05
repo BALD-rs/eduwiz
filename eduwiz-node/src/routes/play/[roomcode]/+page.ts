@@ -1,9 +1,8 @@
-export const load = ({ params }) => {
-    return {
-        roomCode: params.roomcode
-    }
-}
+import { getUsername } from '$lib/flow/utils'
 
-export interface RoomCode {
-    roomCode: string
+export const load = async ({ params }) => {
+    return {
+        roomCode: params.roomcode,
+        username: await getUsername()
+    }
 }

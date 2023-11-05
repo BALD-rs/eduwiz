@@ -1,8 +1,16 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 
 	let questions: any[] = [];
 	let timeLimit: number = 60;
+
+	onMount(() => {
+		const storedQuestions = localStorage.getItem('questions')
+		if (storedQuestions) {
+			questions = JSON.parse(storedQuestions);
+		}
+	});
 
 	const addQuestion = () => {
 		questions.push({
@@ -19,6 +27,7 @@
 	};
 
 	const createGame = async () => {
+		localStorage.setItem('questions', JSON.stringify(questions));
 		questions.forEach((question) => {
 			question.correct_answer = question.answers[question.correct_answer];
 		});

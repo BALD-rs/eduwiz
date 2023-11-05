@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { RoomCode } from './+page';
 
-	export let data: RoomCode;
+	export let data;
 	$: question = '';
 	$: choices = ['', '', '', ''];
 	let status = 'WAITING TO START';
@@ -18,7 +17,7 @@
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify({
-				user: 'freddy fazbear',
+				user: data.username,
 				room: data.roomCode,
 				question: question,
 				answer: answer
@@ -26,7 +25,7 @@
 		});
 		const resJson = await res.json();
 		console.log(resJson);
-		question = (numAnswered + 1) + '. ' + resJson.prompt;
+		question = (numAnswered + 1) + ') ' + resJson.prompt;
 		choices = resJson.answers;
 		if (previousStatus == 'WAITING TO START') {
 			status = 'SHOW QUESTION';
@@ -49,7 +48,8 @@
 
 	let socket;
 	onMount(async () => {
-		socket = new WebSocket(`ws://127.0.0.1:3000/api/join_room/${data.roomCode}`);
+		// window.onbeforeunload = e => '';
+		socket = new WebSocket(`ws://127.0.0.1:3000/api/join_room/${data.roomCode}/${data.username}`);
 		socket.onopen = () => {
 			console.log('WebSocket connection established');
 		};
