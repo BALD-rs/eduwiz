@@ -5,7 +5,6 @@
 
 	let roomCode = '';
 	let username = '';
-	$: tokens = '';
 
 	function joinRoom() {
 		goto(`/play/${roomCode}`);
@@ -14,9 +13,7 @@
 	onMount(async () => {
 		const account = await getAccount();
 		console.log(account);
-		tokens = account.balance;
-		console.log(tokens);
-		console.log(account.addr);
+		console.log(account.address);
 		username = await getUsername();
 		console.log(username);
 	});
@@ -27,13 +24,62 @@
 	<meta name="description" content="Homepage" />
 </svelte:head>
 
-<div class="topnav">
-	<div class="input">
-		<span>Flow tokens: {tokens}</span>
-		<input type="text" placeholder="Enter room code" bind:value={roomCode} />
-		<button on:click={joinRoom} class="button">Join Room</button>
-		<button on:click={logOut} class="button">Logout</button>
-		<button on:click={() => goto('/onboard')} class="button">Set Username</button>
-		<h2>Welcome, {username}!</h2>
+<div class="top-bar">
+	<h2>Welcome, {username}!</h2>
+	<button on:click={() => goto('/onboard')} class="set-username button">Set Username</button>
+</div>
+<div class="main">
+	<div class="center-box">
+		<img src="/logo-words.png" alt="logo" />
+		<div class="input">
+			<input type="text" placeholder="  Enter room code" id="room-code" bind:value={roomCode} />
+			<button on:click={joinRoom} class="button" id="join-room">Join Room</button>
+		</div>
 	</div>
 </div>
+
+<style>
+	div.main {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 90vh;
+	}
+
+	div.top-bar {
+	}
+
+	div.center-box {
+		width: 450px;
+		padding: 2em;
+		background: white;
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+		border-radius: 15px;
+		text-align: center;
+		box-sizing: border-box;
+	}
+
+	div.input {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: 0 15%;
+	}
+
+	#room-code {
+		width: 100%;
+		padding: 10px 0px;
+		border-radius: 5px;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+		margin-bottom: 15px;
+	}
+
+	#join-room {
+		width: 100%;
+		padding: 10px 0px;
+	}
+
+	.button {
+		margin: 10px 10px;
+	}
+</style>
