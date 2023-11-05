@@ -25,12 +25,12 @@
 </svelte:head>
 
 <div class="top-bar">
-	<h2>Welcome, {username}!</h2>
-	<button on:click={() => goto('/onboard')} class="set-username button">Set Username</button>
+	<button on:click={() => goto('/onboard')}>Edit Username</button>
 	<button on:click={logOut}>Log Out</button>
 </div>
 <div class="main">
 	<div class="center-box">
+		<h2>Welcome, {username}!</h2>
 		<img src="/logo-words.png" alt="logo" />
 		<div class="input">
 			<input type="text" placeholder="  Enter room code" id="room-code" bind:value={roomCode} />
@@ -48,6 +48,17 @@
 	}
 
 	div.top-bar {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 0 1em;
+		background-color: blue;
+		color: white;
+	}
+
+	div.top-bar button {
+		margin: 0;
+
 	}
 
 	div.center-box {

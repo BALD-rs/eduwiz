@@ -15,6 +15,10 @@
 	<meta name="description" content="Login page" />
 </svelte:head>
 
+<div id="header-bar">
+	<h1 style="color: white">EduWiz</h1>
+</div>
+
 <div class="login-container">
 	<div class="login-box">
 		<img src="logo-words.png" alt="logo" />
@@ -24,3 +28,5 @@
 		</div>
 	</div>
 </div>
+
+

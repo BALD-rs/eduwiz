@@ -25,16 +25,22 @@
 			<h2>Updating username...</h2>
 			<div class="spinner" />
 		{:else}
-			<h2>Set a username</h2>
+			<h2>Choose a username:</h2>
 			<form class="internal-panel">
 				<input type="text" name="username" id="username" />
-				<button on:click={async () => updateUsername()}>Submit</button>
 			</form>
+			<button on:click={async () => updateUsername()}>Submit</button>
 		{/if}
 	</div>
 </div>
 
 <style>
+	#username {
+		padding: 10px;
+		margin: 10px;
+		width: 100%;
+	}
+
 	.spinner {
 		width: 40px;
 		height: 40px;
