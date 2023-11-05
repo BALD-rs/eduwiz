@@ -38,6 +38,8 @@
 		padding: 0 1em;
 		background-color: blue;
 		color: white;
+		height: 80px; 
+
 	}
 
 	div.top-bar button {
