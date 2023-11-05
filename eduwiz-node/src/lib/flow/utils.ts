@@ -8,11 +8,12 @@ export async function logIn() {
   const u = await fcl.authenticate()
 
   //TODO THIS DOES NOT WORK
-  if (await getLevel() == 0) {
-    goto('/onboard')
-  }
-  else if (u.loggedIn) {
-    goto('/home')
+  if (u.loggedIn) {
+    if (await getLevel() == 0) {
+      goto('/onboard')
+    } else {
+      goto('/home')
+    }
   }
 }
 
