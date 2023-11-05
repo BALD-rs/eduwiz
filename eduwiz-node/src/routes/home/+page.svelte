@@ -1,6 +1,13 @@
-<script lang='ts'>
+<script lang="ts">
 	import { goto } from '$app/navigation';
-	import { getAccount, getLevel, getQuizzesComplete, getUsername, logOut, setUsername } from '$lib/flow/utils';
+	import {
+		getAccount,
+		getLevel,
+		getQuizzesComplete,
+		getUsername,
+		logOut,
+		setUsername
+	} from '$lib/flow/utils';
 	import { onMount } from 'svelte';
 
 	let roomCode = '';
@@ -44,11 +51,10 @@
 	<div class="center-box">
 		<img src="/logo-words.png" alt="logo" />
 		<div class="input">
-			<input type="text" placeholder="Enter room code" id="room-code" bind:value={roomCode} />
-			<button on:click={joinRoom} class="button" id="join-room">Join Room</button>
+			<input type="text" name="room-code" placeholder="Enter room code" id="room-code" bind:value={roomCode} />
+			<button on:click={joinRoom} class="button" id="join-room" type="submit">Join Room</button>
 		</div>
 	</div>
-	
 </div>
 
 <style>
@@ -66,7 +72,7 @@
 		padding: 0 1em;
 		background-color: blue;
 		color: white;
-		height: 80px; 
+		height: 80px;
 	}
 
 	div.top-bar button {

@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { quizComplete } from '$lib/flow/utils.js';
 	import { onMount } from 'svelte';
+	import { writable } from 'svelte/store';
+	import { goto } from '$app/navigation';
 
 	export let data;
 	$: question = '';
@@ -8,6 +10,8 @@
 	let status = 'WAITING TO START';
 	let numCorrect = 0;
 	let numAnswered = 0;
+
+	const loading = writable(false)
 
 	const submitAnswer = async (answer: string) => {
 		const previousStatus = status; // to check later on whether this is the first empty submission
@@ -46,6 +50,13 @@
 		console.log(`Answer choice "${answer}" clicked`);
 		submitAnswer(answer);
 	};
+
+	async function levelUp() {
+		loading.set(true);
+		await quizComplete();
+		loading.set(false);
+		goto('/home');
+	}
 
 	const colors = ['#ff2200', '#0fd637', '#0080ff', '#ff00ff'];
 
@@ -103,12 +114,84 @@
 		</div>
 	</div>
 {:else if status == 'CORRECT'}
-	<p style="color: green;">YOU GOT THE QUESTION RIGHT</p>
-	<p>{numCorrect}/{numAnswered} so far</p>
+<div class="main">
+	<div class="center-box">
+		<h1>✅</h1>
+		<p style="color: green;">CORRECT!</p>
+		<p>{numCorrect}/{numAnswered}</p>
+	</div>
+</div>
 {:else if status == 'INCORRECT'}
-	<p style="color: red;">YOU GOT THE QUESTION WRONG</p>
-	<p>{numCorrect}/{numAnswered} so far</p>
+<div class="main">
+	<div class="center-box">
+		<h1>❌</h1>
+		<p style="color: red;">INCORRECT!</p>
+		<p>{numCorrect}/{numAnswered}</p>
+	</div>
+</div>
 {:else if status == 'GAME OVER'}
-	<p>game over! you got {numCorrect}/{numAnswered} right. <a href="/home">return to home</a></p>
-	<button on:click={quizComplete}>level up!</button>
+<div class="main">
+	<div class="center-box">
+		{#if $loading}
+			<h2>Updating the blockchain...</h2>
+			<div class="spinner" />
+		{:else}
+			<p>Game Over!</p>
+			<p>{numCorrect}/{numAnswered}</p>
+			<button on:click={async () => {levelUp()}}>Level up!</button>
+		{/if}
+	</div>
+</div>
 {/if}
+
+<style>
+	div.question h1 {
+		font-size: 4em;
+	}
+
+	div.choices {
+		font-size: 4em;
+	}
+
+	div.main {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 90vh;
+	}
+
+	div.center-box {
+		width: 450px;
+		padding: 2em;
+		background: white;
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+		border-radius: 15px;
+		text-align: center;
+		box-sizing: border-box;
+		margin: 30px;
+		font-size: 2em;
+	}
+
+	div.center-box h1 {
+		margin: 0.5em 0;
+		font-size: 6em;
+	}
+
+	.spinner {
+		width: 40px;
+		height: 40px;
+		border: 4px solid #f3f3f3;
+		border-top: 4px solid #3498db;
+		border-radius: 50%;
+		animation: spin 2s linear infinite;
+	}
+
+	@keyframes spin {
+		0% {
+			transform: rotate(0deg);
+		}
+		100% {
+			transform: rotate(360deg);
+		}
+	}
+</style>
