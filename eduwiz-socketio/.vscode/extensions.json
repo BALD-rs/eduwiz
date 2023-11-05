@@ -1,9 +1,0 @@
-{
-  "recommendations": [
-    "dbaeumer.vscode-eslint",
-    "esbenp.prettier-vscode",
-    "mblode.pretty-formatter",
-    "yzhang.markdown-all-in-one",
-    "streetsidesoftware.code-spell-checker"
-  ]
-}
