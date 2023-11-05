@@ -11,21 +11,23 @@
 	const submitAnswer = async (answer: string) => {
 		const previousStatus = status; // to check later on whether this is the first empty submission
 		status = '';
+		const reqBody = {
+			user: data.username,
+			room: data.roomCode,
+			question: question,
+			answer: answer
+		};
+		console.log(reqBody)
 		const res = await fetch(import.meta.env.VITE_URL + 'submit_answer', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify({
-				user: data.username,
-				room: data.roomCode,
-				question: question,
-				answer: answer
-			})
+			body: JSON.stringify(reqBody)
 		});
 		const resJson = await res.json();
 		console.log(resJson);
-		question = numAnswered + 1 + ') ' + resJson.prompt;
+		question = resJson.prompt;
 		choices = resJson.answers;
 		if (previousStatus == 'WAITING TO START') {
 			status = 'SHOW QUESTION';
@@ -48,7 +50,7 @@
 
 	let socket;
 	onMount(async () => {
-		// window.onbeforeunload = e => '';
+		window.onbeforeunload = (e) => '';
 		socket = new WebSocket(import.meta.env.VITE_WS + `join_room/${data.roomCode}/${data.username}`);
 		socket.onopen = () => {
 			console.log('WebSocket connection established');
