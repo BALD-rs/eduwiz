@@ -156,6 +156,13 @@ async fn handle_host_socket(
         time += 1;
         let mut r = get_room(&room, pool.clone()).await.unwrap();
 
+        let mut user_and_score = Vec::new();
+        for user in r.get_usernames() {
+            let score: i32 = conn.get(&user).unwrap_or(0);
+            user_and_score.push((user.clone(), score));
+        }
+
+        let _: () = socket.send(Message::Text(json!(user_and_score).to_string())).await.unwrap();
 
         if time > r.get_time_limit() {
             // Updates room from Redis database
