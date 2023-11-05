@@ -1,7 +1,7 @@
 <div align="center">
   <img src="https://github.com/blaine-t/eduwiz/assets/77523903/58dc37f4-773b-488f-8c7e-ab76e687d224" width="300 height="300">
 <h1>EduWiz</h1>
-<h3>Available at <a href="https://EduWiz.study">EduWiz.study</a></h3>
+<h3>Available at <a href="https://EduWiz.study">EduWiz.study</a> courtesy of <a href="https://www.godaddy.com/">GoDaddy</a></h3>
 </div>
 
 ## EduWiz is an online webapp that gamifies learning, increasing in class engagement and educational outcomes.
@@ -58,6 +58,6 @@ All students have an equal chance of winning, and leaderboards are shown in real
 ## Authors:
 - Anton Angeletti
 - Louis Quattrocchi
-- Blaine Traudt
 - Dawson McGahan
+- Blaine Traudt
 
