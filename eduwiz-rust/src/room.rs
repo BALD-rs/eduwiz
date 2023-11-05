@@ -1,13 +1,13 @@
-use std::collections::{HashMap, HashSet};
-use axum::extract::ws::{WebSocket, Message};
+use axum::extract::ws::{Message, WebSocket};
 use futures_util::stream::{SplitSink, SplitStream};
 use rand::{distributions::Alphanumeric, Rng};
+use std::collections::{HashMap, HashSet};
 
-use rand::thread_rng;
-use rand::seq::SliceRandom;
-use serde::{Serialize, Deserialize};
-use redis_derive::{FromRedisValue, ToRedisArgs};
 use r2d2_redis::redis;
+use rand::seq::SliceRandom;
+use rand::thread_rng;
+use redis_derive::{FromRedisValue, ToRedisArgs};
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, FromRedisValue, Deserialize)]
 pub struct Room {
@@ -54,11 +54,16 @@ impl Room {
     // Creates new room code with new code and default parameters
     pub fn new() -> Self {
         // Randomly generated 5 character alphanumeric code
-        let room_code: String = rand::thread_rng()
-        .sample_iter(&Alphanumeric)
-        .take(5)
-        .map(char::from)
-        .collect();
+        let mut rng = rand::thread_rng();
+        let room_code: String = (0..5)
+            .map(|_| {
+                let idx = rng.gen_range(0..36);
+                std::char::from_digit(idx, 36)
+                    .unwrap()
+                    .to_uppercase()
+                    .to_string()
+            })
+            .collect();
 
         return Room {
             code: room_code,
@@ -70,7 +75,7 @@ impl Room {
             shuffle_answers: false,
             questions: HashMap::new(),
             time_limit: 60,
-        }
+        };
     }
 
     pub fn get_time_limit(&self) -> i32 {
@@ -112,7 +117,7 @@ impl Room {
     }
 
     // Adds given question to a room's question set
-    pub fn add_question(&mut self, question: Question ) {
+    pub fn add_question(&mut self, question: Question) {
         self.questions.insert(question.prompt.clone(), question);
     }
 
@@ -133,7 +138,7 @@ impl Room {
         return self.started;
     }
 
-    pub fn get_usernames(&self) -> Vec<String>{
+    pub fn get_usernames(&self) -> Vec<String> {
         let mut usernames = Vec::new();
         for user in &self.users {
             usernames.push(user.name.clone());
