@@ -205,7 +205,7 @@ async fn submit_answer(
     
     let mut conn = pool.get().unwrap();
 
-    let room: Room = match conn.get(&payload.room) {
+    let room: Room = match get_room(&payload.room, pool).await {
         Ok(room) => room,
         Err(_) => {
             println!("Failed to get room");
