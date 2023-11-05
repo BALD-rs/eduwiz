@@ -27,6 +27,8 @@ pub struct Room {
     shuffle_answers: bool,
     /// List of questions for the room // Prompt, Question
     questions: HashMap<String, Question>,
+    /// Time until game end, in seconds
+    time_limit: i32,
 }
 
 #[derive(Serialize, FromRedisValue, ToRedisArgs, Deserialize)]
@@ -39,7 +41,7 @@ pub struct User {
 pub struct Question {
     pub prompt: String,
     pub answers: HashSet<String>,
-    correct_answer: String,
+    pub correct_answer: String,
 }
 
 impl Question {
@@ -58,19 +60,6 @@ impl Room {
         .map(char::from)
         .collect();
 
-        let mut questions = HashMap::new();
-        let mut first_answers: HashSet<String> = HashSet::new();
-        first_answers.insert("2".to_string());
-        first_answers.insert("5".to_string());
-        first_answers.insert("1".to_string());
-        first_answers.insert("22".to_string());
-        let first_quest = Question {
-            prompt: String::from("How many Nobel Prizes does Joe Biden have?"),
-            answers: first_answers,
-            correct_answer: String::from("5"),
-        };
-        questions.insert(first_quest.prompt.clone(), first_quest);
-
         return Room {
             code: room_code,
             users: Vec::new(),
@@ -79,7 +68,8 @@ impl Room {
             finished: false,
             shuffle_questions: false,
             shuffle_answers: false,
-            questions,
+            questions: HashMap::new(),
+            time_limit: 60,
         }
     }
 
@@ -105,6 +95,7 @@ impl Room {
         }
     }
 
+    // Finishes room's game for all clients
     pub fn end_room(&mut self) {
         if !self.finished {
             self.finished = true;
@@ -114,6 +105,16 @@ impl Room {
     // Gets room code
     pub fn get_code(&self) -> String {
         return self.code.clone();
+    }
+
+    // Adds given question to a room's question set
+    pub fn add_question(&mut self, question: Question ) {
+        self.questions.insert(question.prompt.clone(), question);
+    }
+
+    // Sets time limit, in seconds
+    pub fn set_time(&mut self, time: i32) {
+        self.time_limit = time;
     }
 
     pub fn get_questions(&self) -> HashMap<String, Question> {

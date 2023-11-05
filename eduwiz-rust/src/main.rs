@@ -14,6 +14,7 @@ use futures_util::{sink::SinkExt, stream::{StreamExt, SplitSink, SplitStream}};
 use eduwiz_rust::room::{Room, Question};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use core::time;
 use std::{net::SocketAddr, time::Duration, collections::HashSet, sync::Arc};
 
 use dotenvy::dotenv;
@@ -54,7 +55,7 @@ async fn main() {
 
     // Application built
     let app = Router::new()
-        .route("/api/create_room", get(create_room))
+        .route("/api/create_room", post(create_room))
         .route("/api/start_room/:room", get(start_room))
         .route("/api/join_room/:room", get(join_room))
         .route("/api/submit_answer", post(submit_answer))
@@ -76,18 +77,32 @@ struct CreateRoomResponse {
     room_code: String,
 }
 
-// Creates a new room and returns the room code
+#[derive(Serialize, Deserialize)]
+pub struct CreateGameRequest {
+    questions: Vec<Question>,
+    time_limit: i32,
+}
+
 async fn create_room(
     State(pool): State<Pool<RedisConnectionManager>>,
+    extract::Json(payload): extract::Json<CreateGameRequest>,
 ) -> Result<Json<CreateRoomResponse>, StatusCode> {
-    let new_room = Room::new();
+    let mut new_room = Room::new();
+
     let mut conn = match pool.get() {
         Ok(conn) => conn,
         Err(_) => todo!()//return Err(StatusCode::INTERNAL_SERVER_ERROR) 
     };
-    println!("created");
+
+    for question in payload.questions {
+        new_room.add_question(question);
+    }
+
+    new_room.set_time(payload.time_limit);
+
     let room_code = new_room.get_code();
     let room_string = json!(new_room).to_string();
+    // Sets Redis database to current room json
     let cmd = redis::cmd("JSON.SET").arg(&[room_string.clone(), json!(new_room).to_string()]);
     let mut cmd = Cmd::new();
     cmd.arg("JSON.SET").arg(room_code).arg("$").arg(json!(new_room).to_string());
