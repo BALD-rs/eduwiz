@@ -111,17 +111,23 @@ async fn handle_host_socket(
     mut socket: WebSocket,
     pool: Pool<RedisConnectionManager>,
 ) {
+    let mut conn = pool.get().unwrap();
     let mut interval = tokio::time::interval(Duration::from_secs(5));
     let mut time = 0;
     loop {
         interval.tick().await;
         time += 5;
 
-        let r = get_room(&room, pool.clone()).await.unwrap();
+        let mut r = get_room(&room, pool.clone()).await.unwrap();
 
+        r.start_room();
 
+        let mut cmd = Cmd::new();
+        cmd.arg("JSON.SET").arg(&room).arg("$").arg(json!(r).to_string());
 
-        if time > 60 {
+        let apple = conn.req_command(&cmd).unwrap();
+
+        if time > 10 {
             break;
         }
     }
