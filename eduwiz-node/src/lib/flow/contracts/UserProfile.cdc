@@ -30,13 +30,13 @@ pub contract UserProfile {
         pub fun quizComplete() {
             self.quizzesCompleted = self.quizzesCompleted + 1
             
-            if self.quizzesCompleted >= 75 {
+            if self.quizzesCompleted >= 5 {
                 self.level = 5
-            } else if self.quizzesCompleted >= 40 {
+            } else if self.quizzesCompleted >= 4 {
                 self.level = 4
-            } else if self.quizzesCompleted >= 15 {
+            } else if self.quizzesCompleted >= 3 {
                 self.level = 3
-            } else if self.quizzesCompleted >= 5 {
+            } else if self.quizzesCompleted >= 2 {
                 self.level = 2
             } else {
                 self.level = 1
