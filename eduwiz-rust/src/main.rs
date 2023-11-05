@@ -18,8 +18,10 @@ use std::{net::SocketAddr, time::Duration, collections::HashSet, sync::Arc};
 
 use dotenvy::dotenv;
 
-use r2d2_redis::{r2d2::{self, Pool}, RedisConnectionManager};
+use r2d2_redis::{r2d2::{self, Pool}, RedisConnectionManager, redis::{ConnectionLike, Value, FromRedisValue}};
 use r2d2_redis::redis::{Commands, RedisResult};
+use r2d2_redis::redis::{ Cmd};
+
 use tower_http::cors::{Any, CorsLayer};
 
 
@@ -86,7 +88,12 @@ async fn create_room(
     println!("created");
     let room_code = new_room.get_code();
     let room_string = json!(new_room).to_string();
-    let _: () = conn.set(room_code, room_string).unwrap();
+    let cmd = redis::cmd("JSON.SET").arg(&[room_string.clone(), json!(new_room).to_string()]);
+    let mut cmd = Cmd::new();
+    cmd.arg("JSON.SET").arg(room_code).arg("$").arg(json!(new_room).to_string());
+
+    let apple = conn.req_command(&cmd).unwrap();
+    println!("{:?}", apple);
     return  Ok( Json(CreateRoomResponse { room_code: new_room.get_code() }) );
 }
 
@@ -114,20 +121,19 @@ async fn handle_host_socket(
 // Starts room given and upgrades to a websocket
 async fn join_room(
     ws: WebSocketUpgrade,
-    ConnectInfo(addr): ConnectInfo<SocketAddr>,
+    //ConnectInfo(addr): ConnectInfo<SocketAddr>,
     Path(room): Path<String>,
     State(pool): State<Pool<RedisConnectionManager>>,
 ) -> impl IntoResponse {
-    
     println!("joined");
-    ws.on_upgrade(move |socket| handle_client_socket(room, socket, addr, axum::extract::State(pool)))
+    ws.on_upgrade(move |socket| handle_client_socket(room, socket, pool))
 }
 
 async fn handle_client_socket(
     room: String,
     mut socket: WebSocket,
-    who: SocketAddr,
-    State(pool): State<Pool<RedisConnectionManager>>,
+    //who: SocketAddr,
+    pool: Pool<RedisConnectionManager>,
 ) {
     println!("handle client socket");
     let mut interval = tokio::time::interval(Duration::from_secs(2));
@@ -136,20 +142,37 @@ async fn handle_client_socket(
         // Executes every 2 seconds
         interval.tick().await;
         // Polls for latest room
-        let room: Room = match conn.get(&room) {
-            Ok(room) => room,
-            Err(_) => {
+        let mut cmd = Cmd::new();
+        cmd.arg("JSON.GET").arg(room.clone()).arg("$");
+        let json_req = conn.req_command(&cmd);
+
+        let mut room: String = match json_req {
+            Ok(value) => {
+                match String::from_redis_value(&value) {
+                    Ok(room_json) => room_json,
+                    Err(e) => continue
+                }
+            }
+            Err(e) => {
+                println!("{}", e);
                 println!("Failed to get room");
                 continue;
             }
         };
 
-        if room.get_finished() {
-            socket.send(Message::Text(String::from("END"))).await;
+        room.pop();
+        room.remove(0);
+
+        let r: Room = serde_json::from_str(&room).unwrap();
+
+        //println!("TICKING");
+
+        if r.get_finished() {
+            let _: () = socket.send(Message::Text(String::from("END"))).await.unwrap();
         }
 
-        if room.get_started() {
-            socket.send(Message::Text(String::from("START"))).await;
+        if r.get_started() {
+            let _: () = socket.send(Message::Text(String::from("START"))).await.unwrap();
         }
     }
 }
