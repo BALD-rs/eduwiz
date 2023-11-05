@@ -1,49 +1,53 @@
 use axum::{
+    extract::{self, ConnectInfo, Extension, Path, State},
     extract::{
         ws::{Message, WebSocket, WebSocketUpgrade},
-        TypedHeader,
-        Json as Json2
+        Json as Json2, TypedHeader,
     },
-    routing::{get, post},
     http::StatusCode,
     response::IntoResponse,
-    Json, Router, extract::{State, Path, ConnectInfo, Extension, self},
+    routing::{get, post},
+    Json, Router,
 };
-use futures_util::{sink::SinkExt, stream::{StreamExt, SplitSink, SplitStream}};
+use futures_util::{
+    sink::SinkExt,
+    stream::{SplitSink, SplitStream, StreamExt},
+};
 
-use eduwiz_rust::room::{Room, Question, User};
+use core::time;
+use eduwiz_rust::room::{Question, Room, User};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use core::time;
-use std::{net::SocketAddr, time::Duration, collections::HashSet, sync::Arc};
+use std::{collections::HashSet, net::SocketAddr, sync::Arc, time::Duration};
 
 use dotenvy::dotenv;
 
-use r2d2_redis::{r2d2::{self, Pool}, RedisConnectionManager, redis::{ConnectionLike, Value, FromRedisValue}};
+use r2d2_redis::redis::Cmd;
 use r2d2_redis::redis::{Commands, RedisResult};
-use r2d2_redis::redis::{ Cmd};
+use r2d2_redis::{
+    r2d2::{self, Pool},
+    redis::{ConnectionLike, FromRedisValue, Value},
+    RedisConnectionManager,
+};
 
 use tower_http::cors::{Any, CorsLayer};
-
 
 #[tokio::main]
 async fn main() {
     dotenv().expect(".env file not found");
-    
+
     let redis_username = std::env::var("USERNAME").expect("USERNAME must be set.");
     let redis_password = std::env::var("PASSWORD").expect("PASSWORD must be set.");
     let redis_host = std::env::var("HOST").expect("HOST must be set.");
 
     let url = format!("redis://{redis_username}:{redis_password}@{redis_host}");
     let manager = RedisConnectionManager::new(url).unwrap();
-    let pool = r2d2::Pool::builder()
-        .build(manager)
-        .unwrap();
-    
+    let pool = r2d2::Pool::builder().build(manager).unwrap();
+
     let mut con = pool.get().unwrap();
-    
-    let _ : () = con.set("my_key", 42).unwrap();
-    
+
+    let _: () = con.set("my_key", 42).unwrap();
+
     let keyval: RedisResult<isize> = con.get("my_key");
     println!("{:?}", keyval);
     let cors = CorsLayer::new()
@@ -76,16 +80,15 @@ pub struct RoomUsers {
     users: Vec<String>,
 }
 
-pub async fn get_users (
+pub async fn get_users(
     Path(room): Path<String>,
     State(pool): State<Pool<RedisConnectionManager>>,
-) -> Result<Json<RoomUsers>, StatusCode>{
+) -> Result<Json<RoomUsers>, StatusCode> {
     let mut conn = pool.get().unwrap();
     let r = get_room(&room, pool).await.unwrap();
     let users = r.get_usernames();
     return Ok(Json(RoomUsers { users: users }));
 }
-
 
 #[derive(Serialize, Deserialize)]
 struct CreateRoomResponse {
@@ -106,7 +109,7 @@ async fn create_room(
 
     let mut conn = match pool.get() {
         Ok(conn) => conn,
-        Err(_) => todo!()//return Err(StatusCode::INTERNAL_SERVER_ERROR) 
+        Err(_) => todo!(), //return Err(StatusCode::INTERNAL_SERVER_ERROR)
     };
 
     for question in payload.questions {
@@ -120,11 +123,16 @@ async fn create_room(
     // Sets Redis database to current room json
     let cmd = redis::cmd("JSON.SET").arg(&[room_string.clone(), json!(new_room).to_string()]);
     let mut cmd = Cmd::new();
-    cmd.arg("JSON.SET").arg(room_code).arg("$").arg(json!(new_room).to_string());
+    cmd.arg("JSON.SET")
+        .arg(room_code)
+        .arg("$")
+        .arg(json!(new_room).to_string());
 
     let apple = conn.req_command(&cmd).unwrap();
     println!("{:?}", apple);
-    return  Ok( Json(CreateRoomResponse { room_code: new_room.get_code() }) );
+    return Ok(Json(CreateRoomResponse {
+        room_code: new_room.get_code(),
+    }));
 }
 
 // Starts room given and upgrades to a websocket
@@ -149,7 +157,10 @@ async fn handle_host_socket(
     r.start_room();
     // Updates room on redis end
     let mut cmd = Cmd::new();
-    cmd.arg("JSON.SET").arg(&room).arg("$").arg(json!(r).to_string());
+    cmd.arg("JSON.SET")
+        .arg(&room)
+        .arg("$")
+        .arg(json!(r).to_string());
     let apple = conn.req_command(&cmd).unwrap();
     loop {
         interval.tick().await;
@@ -162,7 +173,10 @@ async fn handle_host_socket(
             user_and_score.push((user.clone(), score));
         }
 
-        let _: () = socket.send(Message::Text(json!(user_and_score).to_string())).await.unwrap();
+        let _: () = socket
+            .send(Message::Text(json!(user_and_score).to_string()))
+            .await
+            .unwrap();
 
         if time > r.get_time_limit() {
             // Updates room from Redis database
@@ -171,38 +185,39 @@ async fn handle_host_socket(
             r.end_room();
 
             let mut cmd = Cmd::new();
-            cmd.arg("JSON.SET").arg(&room).arg("$").arg(json!(r).to_string());
+            cmd.arg("JSON.SET")
+                .arg(&room)
+                .arg("$")
+                .arg(json!(r).to_string());
             let apple = conn.req_command(&cmd).unwrap();
             break;
         }
     }
 }
 
-async fn get_room(room: &String, pool: Pool<RedisConnectionManager>) -> Result<Room,()> {
+async fn get_room(room: &String, pool: Pool<RedisConnectionManager>) -> Result<Room, ()> {
     let mut conn = pool.get().unwrap();
     let mut cmd = Cmd::new();
-        cmd.arg("JSON.GET").arg(room.clone()).arg("$");
-        let json_req = conn.req_command(&cmd);
+    cmd.arg("JSON.GET").arg(room.clone()).arg("$");
+    let json_req = conn.req_command(&cmd);
 
-        let mut room: String = match json_req {
-            Ok(value) => {
-                match String::from_redis_value(&value) {
-                    Ok(room_json) => room_json,
-                    Err(e) => return Err(())
-                }
-            }
-            Err(e) => {
-                println!("{}", e);
-                println!("Failed to get room");
-                return Err(());
-            }
-        };
+    let mut room: String = match json_req {
+        Ok(value) => match String::from_redis_value(&value) {
+            Ok(room_json) => room_json,
+            Err(e) => return Err(()),
+        },
+        Err(e) => {
+            println!("{}", e);
+            println!("Failed to get room");
+            return Err(());
+        }
+    };
 
-        room.pop();
-        room.remove(0);
+    room.pop();
+    room.remove(0);
 
-        let r: Room = serde_json::from_str(&room).unwrap();
-        return Ok(r);
+    let r: Room = serde_json::from_str(&room).unwrap();
+    return Ok(r);
 }
 
 // Starts room given and upgrades to a websocket
@@ -218,12 +233,17 @@ async fn join_room(
         id: 7,
         name: user.clone(),
     };
-    
+
     r.add_user(new_user);
     let mut cmd = Cmd::new();
-    cmd.arg("JSON.SET").arg(&room).arg("$").arg(json!(r).to_string());
+    cmd.arg("JSON.SET")
+        .arg(&room)
+        .arg("$")
+        .arg(json!(r).to_string());
     let apple = conn.req_command(&cmd).unwrap();
     println!("joined");
+    // Reset player score when they join a new room
+    let _: () = conn.set(user.clone(), 0).unwrap();
     ws.on_upgrade(move |socket| handle_client_socket(room, socket, pool))
 }
 
@@ -244,13 +264,19 @@ async fn handle_client_socket(
         // Grabs latest room data
         let r = get_room(&room, pool.clone()).await.unwrap();
 
-        if r.get_finished() && !finished_sent{
-            let _: () = socket.send(Message::Text(String::from("END"))).await.unwrap();
+        if r.get_finished() && !finished_sent {
+            let _: () = socket
+                .send(Message::Text(String::from("END")))
+                .await
+                .unwrap();
             finished_sent = true;
         }
 
-        if r.get_started() && !started_sent{
-            let _: () = socket.send(Message::Text(String::from("START"))).await.unwrap();
+        if r.get_started() && !started_sent {
+            let _: () = socket
+                .send(Message::Text(String::from("START")))
+                .await
+                .unwrap();
             started_sent = true;
         }
     }
@@ -266,9 +292,8 @@ pub struct QuestionInfo {
 
 async fn submit_answer(
     State(pool): State<Pool<RedisConnectionManager>>,
-    extract::Json(payload): extract::Json<QuestionInfo>
-) -> Result<Json<ClientQuestion>, StatusCode>{
-    
+    extract::Json(payload): extract::Json<QuestionInfo>,
+) -> Result<Json<ClientQuestion>, StatusCode> {
     let mut conn = pool.get().unwrap();
 
     let room: Room = match get_room(&payload.room, pool).await {
