@@ -5,11 +5,13 @@
 	export let data: RoomCode;
 	$: question = '';
 	$: choices = ['', '', '', ''];
-	let showQuestion = false;
-	let gameOver = false;
+	let status = 'WAITING TO START';
+	let numCorrect = 0;
+	let numAnswered = 0;
 
 	const submitAnswer = async (answer: string) => {
-		showQuestion = false;
+		const previousStatus = status; // to check later on whether this is the first empty submission
+		status = '';
 		const res = await fetch('http://127.0.0.1:3000/api/submit_answer', {
 			method: 'POST',
 			headers: {
@@ -24,9 +26,18 @@
 		});
 		const resJson = await res.json();
 		console.log(resJson);
-		question = resJson.prompt;
+		question = (numAnswered + 1) + '. ' + resJson.prompt;
 		choices = resJson.answers;
-		showQuestion = true;
+		if (previousStatus == 'WAITING TO START') {
+			status = 'SHOW QUESTION';
+		} else {
+			numAnswered++;
+			numCorrect = resJson.last_correct ? numCorrect + 1 : numCorrect;
+			status = resJson.last_correct ? 'CORRECT' : 'INCORRECT';
+			setTimeout(() => {
+				if (status != 'GAME OVER') status = 'SHOW QUESTION';
+			}, 3000);
+		}
 	};
 
 	const handleChoiceClick = (answer: string) => {
@@ -51,8 +62,7 @@
 					await submitAnswer(' ');
 					break;
 				case 'END':
-					showQuestion = false;
-					gameOver = true;
+					status = 'GAME OVER';
 					break;
 			}
 		};
@@ -72,7 +82,9 @@
 	<meta name="description" content="Game Room" />
 </svelte:head>
 
-{#if showQuestion}
+{#if status == 'WAITING TO START'}
+	<p>Waiting for teacher to start the game</p>
+{:else if status == 'SHOW QUESTION'}
 	<div class="question">
 		<h1>{question}</h1>
 		<div class="choices">
@@ -87,8 +99,12 @@
 			{/each}
 		</div>
 	</div>
-{:else if gameOver}
-	<p>game over! go <a href="/home">home</a></p>
-{:else}
-	<p>waiting for a question...</p>
+{:else if status == 'CORRECT'}
+	<p style="color: green;">YOU GOT THE QUESTION RIGHT</p>
+	<p>{numCorrect}/{numAnswered} so far</p>
+{:else if status == 'INCORRECT'}
+	<p style="color: red;">YOU GOT THE QUESTION WRONG</p>
+	<p>{numCorrect}/{numAnswered} so far</p>
+{:else if status == 'GAME OVER'}
+	<p>game over! you got {numCorrect}/{numAnswered} right. <a href="/home">return to home</a></p>
 {/if}
