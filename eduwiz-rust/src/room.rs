@@ -58,6 +58,19 @@ impl Room {
         .map(char::from)
         .collect();
 
+        let mut questions = HashMap::new();
+        let mut first_answers: HashSet<String> = HashSet::new();
+        first_answers.insert("2".to_string());
+        first_answers.insert("5".to_string());
+        first_answers.insert("1".to_string());
+        first_answers.insert("22".to_string());
+        let first_quest = Question {
+            prompt: String::from("How many balls does Joe Biden have?"),
+            answers: first_answers,
+            correct_answer: String::from("5"),
+        };
+        questions.insert(first_quest.prompt.clone(), first_quest);
+
         return Room {
             code: room_code,
             users: Vec::new(),
@@ -66,7 +79,7 @@ impl Room {
             finished: false,
             shuffle_questions: false,
             shuffle_answers: false,
-            questions: HashMap::new(),
+            questions,
         }
     }
 
