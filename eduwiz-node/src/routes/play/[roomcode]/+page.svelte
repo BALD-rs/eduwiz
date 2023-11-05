@@ -97,7 +97,12 @@
 </svelte:head>
 
 {#if status == 'WAITING TO START'}
-	<p>Waiting for teacher to start the game</p>
+	<div class="login-container">
+		<div class="username-panel">
+			<h2>Waiting for the game to begin...</h2>
+			<div class="spinner" />
+		</div>
+	</div>
 {:else if status == 'SHOW QUESTION'}
 	<div class="question">
 		<h1>{question}</h1>
@@ -130,14 +135,14 @@
 		</div>
 	</div>
 {:else if status == 'GAME OVER'}
-	<div class="main">
-		<div class="center-box">
+	<div class="login-container">
+		<div class="username-panel">
 			{#if $loading}
 				<h2>Updating the blockchain...</h2>
 				<div class="spinner" />
 			{:else}
 				<p>Game Over!</p>
-				<p>{numCorrect}/{numAnswered}</p>
+				<p>{numCorrect}/{numAnswered} Correct</p>
 				<button
 					on:click={async () => {
 						levelUp();
@@ -161,14 +166,16 @@
 		border-radius: 25px;
 	}
 
-	div.main {
+	div.main,
+	div.login-container {
 		display: flex;
 		justify-content: center;
 		align-items: center;
 		height: 90vh;
 	}
 
-	div.center-box {
+	div.center-box,
+	div.username-panel {
 		width: 450px;
 		padding: 2em;
 		background: white;
@@ -177,7 +184,7 @@
 		text-align: center;
 		box-sizing: border-box;
 		margin: 30px;
-		font-size: 2em;
+		font-size: 1.5em;
 	}
 
 	div.center-box h1 {
