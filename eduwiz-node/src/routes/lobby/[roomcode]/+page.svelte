@@ -12,6 +12,7 @@
 			console.log('Message from server:', event.data);
 			players = JSON.parse(event.data);
 			const tbody = document.createElement('tbody');
+			const trSet = new Set();
 			for (let i = 0; i < players.length; i++) {
 				const tr = document.createElement('tr');
 				for (let j = 0; j < 2; j++) {
@@ -19,7 +20,11 @@
 					td.innerText = players[i][j];
 					tr.append(td);
 				}
-				tbody.append(tr);
+				const trString = tr.innerHTML;
+				if (!trSet.has(trString)) {
+					tbody.append(tr);
+					trSet.add(trString);
+				}
 			}
 			const leaderboard = document.getElementById('leaderboard');
 			if (leaderboard != null) {
