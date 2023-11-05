@@ -206,9 +206,17 @@ img {
 
 .internal-panel {
 	display: flex;
-	justify-content: center;
+	justify-content: space-between;
 }
 
 .username-panel input {
 	width: 100%;
+}
+
+div#header-bar {
+	background-color: blue;
+}
+
+div#header-bar h1 {
+	color: white;
 }
